@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phonics 3000 Dual Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #f8fafc; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-btn { transition: all 0.2s ease-in-out; }
+        .nav-btn.active { background-color: #3b82f6; color: white; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); }
+        .nav-btn:hover:not(.active) { background-color: #e2e8f0; }
+        .ipa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 10px; }
+        .chunk-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .chunk-card:hover { transform: translateY(-4px); }
+        .chunk-card.playing { ring: 4px solid #3b82f6; transform: scale(1.04); }
+        .step-btn.playing { border-color: #3b82f6; background-color: #eff6ff; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <nav class="bg-white shadow-sm border-b-2 border-slate-200 p-4 shrink-0 z-20">
+        <div class="max-w-6xl mx-auto flex flex-wrap gap-2 md:gap-4 justify-center items-center">
+            <div class="text-2xl font-black text-slate-800 mr-auto flex items-center gap-2">
+                🚀 Phonics 3000
+            </div>
+            <button onclick="switchTab('main')" id="btn-tab-main" class="nav-btn active px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100">🏠 主頁引擎</button>
+            <button onclick="switchTab('dictionary')" id="btn-tab-dictionary" class="nav-btn px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100">📖 核心字庫</button>
+            <button onclick="switchTab('extractor')" id="btn-tab-extractor" class="nav-btn px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100">📝 文章提取</button>
+            <button onclick="switchTab('ipa')" id="btn-tab-ipa" class="nav-btn px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100">📊 國際音標表</button>
+        </div>
+    </nav>
+
+    <main class="flex-1 overflow-auto p-4 sm:p-8">
+        <div class="max-w-5xl mx-auto space-y-6">
+
+            <!-- ================= VIEW: MAIN ENGINE ================= -->
+            <div id="view-main" class="tab-content active space-y-6">
+                <!-- Search & Control Header -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 rounded-2xl shadow-sm border-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-indigo-100 text-indigo-700 font-bold px-3 py-1 rounded-lg text-sm">英式 IPA 音頻切片合成 (Onset 70% + Coda 50%)</span>
+                        <button onclick="toggleModal(true)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-black text-slate-600 transition-colors" title="Methodology Explanation">?</button>
+                    </div>
+                    <div class="flex w-full sm:w-auto gap-2">
+                        <input type="text" id="word-input" class="w-full sm:w-64 px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none font-bold text-lg" placeholder="輸入單字直接拆解..." value="dictionary" onkeypress="if(event.key === 'Enter') processWord()">
+                        <button onclick="processWord()" class="px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl shadow-md transition-colors">拆解</button>
+                    </div>
+                </div>
+
+                <!-- Word Display Card -->
+                <div class="bg-gradient-to-b from-blue-50/70 to-indigo-50/70 rounded-3xl p-6 sm:p-8 text-center border-2 border-blue-100 shadow-sm relative">
+                    <div class="text-xs font-bold text-blue-500 mb-1 uppercase tracking-widest">Full Word Preview</div>
+                    <h1 id="display-word" class="text-5xl sm:text-7xl font-black text-slate-800 tracking-tight mb-2">dictionary</h1>
+                    <div id="display-ipa" class="text-xl sm:text-2xl font-bold text-slate-600 font-mono bg-white inline-block px-5 py-1 rounded-xl shadow-sm border border-slate-200">/ˈdɪkʃənəri/</div>
+                    
+                    <!-- Playback Status Indicator -->
+                    <div id="play-status" class="mt-3 text-xs font-bold text-slate-400 h-5 flex items-center justify-center gap-1.5">
+                        <span>Ready</span>
+                    </div>
+                </div>
+
+                <!-- Syllable Breakdown Chunks Area -->
+                <div class="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm text-center">
+                    <div class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Syllable Breakdown (組件分解)</div>
+                    <p class="text-xs text-slate-500 mb-4 font-semibold">點擊個別組件，即可獨立聆聽發音</p>
+                    
+                    <!-- Spacious Chunks Container -->
+                    <div id="syllables-container" class="flex flex-wrap justify-center gap-4 sm:gap-6">
+                        <!-- Dynamic Minimal Chunks injected here -->
+                    </div>
+
+                    <!-- Clean 3-Color Phonics Legend for Children -->
+                    <div class="flex items-center justify-center gap-4 sm:gap-6 text-xs font-extrabold mt-5 pt-4 border-t border-slate-100">
+                        <span class="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>2. 頭音 (Onset)
+                        </span>
+                        <span class="flex items-center gap-1.5 text-red-500 bg-red-50 px-2.5 py-1 rounded-lg border border-red-100">
+                            <span class="w-2 h-2 rounded-full bg-red-500"></span>1. 元音 (Vowel)
+                        </span>
+                        <span class="flex items-center gap-1.5 text-purple-600 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100">
+                            <span class="w-2 h-2 rounded-full bg-purple-600"></span>3. 尾音 (Coda)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 4 Action Steps Controls in Exact Order -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Step 1 -->
+                    <button id="step-btn-1" onclick="triggerStep(1)" class="step-btn flex flex-col items-center justify-center bg-white border-2 border-slate-200 p-4 rounded-2xl hover:border-red-400 hover:shadow-md transition-all group">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-2xl group-hover:scale-110 transition-transform">🎯</span>
+                            <span class="text-xs font-black bg-red-100 text-red-700 px-2 py-0.5 rounded-full">讀2次</span>
+                        </div>
+                        <span class="font-black text-slate-800 text-base">1. 認元音</span>
+                        <span class="text-[11px] font-bold text-slate-400 mt-0.5">Vowel 100%</span>
+                    </button>
+
+                    <!-- Step 2 -->
+                    <button id="step-btn-2" onclick="triggerStep(2)" class="step-btn flex flex-col items-center justify-center bg-white border-2 border-slate-200 p-4 rounded-2xl hover:border-emerald-400 hover:shadow-md transition-all group">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-2xl group-hover:scale-110 transition-transform">🧩</span>
+                            <span class="text-xs font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">讀2次</span>
+                        </div>
+                        <span class="font-black text-slate-800 text-base">2. 拼頭音</span>
+                        <span class="text-[11px] font-bold text-slate-400 mt-0.5">Onset 70% + Vowel</span>
+                    </button>
+
+                    <!-- Step 3 -->
+                    <button id="step-btn-3" onclick="triggerStep(3)" class="step-btn flex flex-col items-center justify-center bg-white border-2 border-slate-200 p-4 rounded-2xl hover:border-purple-400 hover:shadow-md transition-all group">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-2xl group-hover:scale-110 transition-transform">✨</span>
+                            <span class="text-xs font-black bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">讀2次</span>
+                        </div>
+                        <span class="font-black text-slate-800 text-base">3. 加尾音</span>
+                        <span class="text-[11px] font-bold text-slate-400 mt-0.5">+ Coda 尾 50%</span>
+                    </button>
+
+                    <!-- Step 4 -->
+                    <button id="step-btn-4" onclick="triggerStep(4)" class="step-btn flex flex-col items-center justify-center bg-white border-2 border-slate-200 p-4 rounded-2xl hover:border-blue-400 hover:shadow-md transition-all group">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-2xl group-hover:scale-110 transition-transform">🗣️</span>
+                            <span class="text-xs font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">讀2次</span>
+                        </div>
+                        <span class="font-black text-slate-800 text-base">4. 全字拼音</span>
+                        <span class="text-[11px] font-bold text-slate-400 mt-0.5">UK Female TTS</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="view-dictionary" class="tab-content bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-2 border-slate-100">
+                <h2 class="text-2xl font-black text-slate-800 mb-2 flex items-center gap-2">📖 核心字庫 (Instant Offline-First)</h2>
+                <p class="text-slate-500 mb-6 font-semibold text-sm">收錄核心標準範例字庫，點擊即可立即載入主頁進行多步驟發音練習。</p>
+                <input type="text" id="dict-search" onkeyup="filterDictionary()" class="w-full px-4 py-3 border-2 border-slate-200 rounded-2xl focus:border-blue-500 focus:outline-none font-bold text-base mb-6" placeholder="搜尋核心詞彙 (如: dictionary, because, accomplish...)">
+                <div id="dict-list" class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[55vh] overflow-y-auto pr-1"></div>
+            </div>
+
+            <div id="view-extractor" class="tab-content bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-2 border-slate-100">
+                <h2 class="text-2xl font-black text-slate-800 mb-2 flex items-center gap-2">📝 課文生字提取器</h2>
+                <p class="text-slate-500 mb-4 font-semibold text-sm">貼上文章後自動過濾停用詞，提取重點單字並一鍵載入主頁練習。</p>
+                <textarea id="extract-input" rows="4" class="w-full px-4 py-3 border-2 border-slate-200 rounded-2xl focus:border-blue-500 focus:outline-none font-semibold text-slate-700 mb-4" placeholder="在此貼上課文或故事內容..."></textarea>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button onclick="extractVocab()" class="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl shadow transition-colors">🔍 提取生字</button>
+                    <button onclick="selectAllExtracted(true)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors">全選</button>
+                    <button onclick="selectAllExtracted(false)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors">全不選</button>
+                </div>
+                <div id="extracted-grid" class="flex flex-wrap gap-3"></div>
+            </div>
+
+            <div id="view-ipa" class="tab-content bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-2 border-slate-100">
+                <div class="mb-6 pb-4 border-b-2 border-slate-100">
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 flex items-center gap-2">📊 國際音標表 (44 IPA Sounds)</h2>
+                    <p class="text-slate-500 font-bold mt-1 text-sm">結合 Vocabulary.com 原聲女音與 Google UK 音源，供底層 70%/50% 時間切片使用。</p>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-black text-red-500 mb-3 flex items-center gap-2"><span class="bg-red-100 px-2 py-0.5 rounded-lg text-sm">A</span> Vowels (單元音 12)</h3>
+                        <div id="grid-vowels" class="ipa-grid"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-orange-500 mb-3 flex items-center gap-2"><span class="bg-orange-100 px-2 py-0.5 rounded-lg text-sm">B</span> Diphthongs (雙元音 8)</h3>
+                        <div id="grid-diphthongs" class="ipa-grid"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-blue-500 mb-3 flex items-center gap-2"><span class="bg-blue-100 px-2 py-0.5 rounded-lg text-sm">C</span> Consonants (輔音 24)</h3>
+                        <div id="grid-consonants" class="ipa-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="info-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-xl font-black text-slate-800">🧠 4 步發音與切片原理</h3>
+                <button onclick="toggleModal(false)" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
+            </div>
+            <div class="space-y-3 text-sm text-slate-600 font-semibold">
+                <div class="p-3 bg-red-50 rounded-xl border border-red-100">
+                    <span class="text-red-700 font-bold">1. 認元音 (Vowel)</span>: 只播放每個組件的核心元音 (100% 完整時長)，重覆兩次。
+                </div>
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <span class="text-emerald-700 font-bold">2. 拼頭音 (Onset 70%)</span>: 截取頭輔音的前 70% 時間長度，無縫接駁元音 100%，重覆兩次。
+                </div>
+                <div class="p-3 bg-purple-50 rounded-xl border border-purple-100">
+                    <span class="text-purple-700 font-bold">3. 加尾音 (Coda 50%)</span>: 結合 Onset (70%) + Vowel (100%) + 尾輔音後 50% 時間切片，重覆兩次。
+                </div>
+                <div class="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <span class="text-blue-700 font-bold">4. 全字拼音 (TTS)</span>: 以英式女聲 (UK Female) 朗讀完整單字，重覆兩次。
+                </div>
+            </div>
+            <button onclick="toggleModal(false)" class="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl">明白</button>
+        </div>
+    </div>
+
+    <script>
+        // Global playback session ID for instant interruption
+        let activeSessionId = 0;
+        let activeAudioElements = [];
+        let currentAnalysis = null;
+        let currentStepLevel = 0;
+
+        const customWordDatabase = {
+            "dictionary": {
+                word: "dictionary",
+                ipa: "/ˈdɪk.ʃən.ər.i/",
+                chunks: [
+                    { letters: "dic", onsetLet: "d", vowelLet: "i", codaLet: "c", onset: "d", vowel: "ɪ", coda: "k" },
+                    { letters: "tion", onsetLet: "t", vowelLet: "io", codaLet: "n", onset: "ʃ", vowel: "ə", coda: "n" },
+                    { letters: "ar", onsetLet: "", vowelLet: "a", codaLet: "r", onset: null, vowel: "ə", coda: "r" },
+                    { letters: "y", onsetLet: "", vowelLet: "y", codaLet: "", onset: null, vowel: "i", coda: null }
+                ]
+            },
+            "australia": {
+                word: "Australia",
+                ipa: "/ɒsˈtreɪ.li.ə/",
+                chunks: [
+                    { letters: "aus", onsetLet: "", vowelLet: "au", codaLet: "s", onset: null, vowel: "ɒ", coda: "s" },
+                    { letters: "tra", onsetLet: "tr", vowelLet: "a", codaLet: "", onset: "tr", vowel: "eɪ", coda: null },
+                    { letters: "li", onsetLet: "l", vowelLet: "i", codaLet: "", onset: "l", vowel: "i", coda: null },
+                    { letters: "a", onsetLet: "", vowelLet: "a", codaLet: "", onset: null, vowel: "ə", coda: null }
+                ]
+            },
+            "ought": {
+                word: "ought",
+                ipa: "/ˈɔːt/",
+                chunks: [
+                    { letters: "ought", onsetLet: "", vowelLet: "ough", codaLet: "t", onset: null, vowel: "ɔː", coda: "t" }
+                ]
+            },
+            "thought": {
+                word: "thought",
+                ipa: "/θɔːt/",
+                chunks: [
+                    { letters: "thought", onsetLet: "th", vowelLet: "ough", codaLet: "t", onset: "θ", vowel: "ɔː", coda: "t" }
+                ]
+            },
+            "bought": {
+                word: "bought",
+                ipa: "/bɔːt/",
+                chunks: [
+                    { letters: "bought", onsetLet: "b", vowelLet: "ough", codaLet: "t", onset: "b", vowel: "ɔː", coda: "t" }
+                ]
+            },
+            "because": {
+                word: "because",
+                ipa: "/bɪˈkɒz/",
+                chunks: [
+                    { letters: "be", onsetLet: "b", vowelLet: "e", codaLet: "", onset: "b", vowel: "ɪ", coda: null },
+                    { letters: "cause", onsetLet: "c", vowelLet: "au", codaLet: "se", onset: "k", vowel: "ɒ", coda: "z" }
+                ]
+            },
+            "accomplish": {
+                word: "accomplish",
+                ipa: "/əˈkɒm.plɪʃ/",
+                chunks: [
+                    { letters: "ac", onsetLet: "", vowelLet: "a", codaLet: "c", onset: null, vowel: "ə", coda: "k" },
+                    { letters: "com", onsetLet: "c", vowelLet: "o", codaLet: "m", onset: "k", vowel: "ɒ", coda: "m" },
+                    { letters: "plish", onsetLet: "pl", vowelLet: "i", codaLet: "sh", onset: "pl", vowel: "ɪ", coda: "ʃ" }
+                ]
+            },
+            "resonation": {
+                word: "resonation",
+                ipa: "/ˌrez.əˈneɪ.ʃən/",
+                chunks: [
+                    { letters: "re", onsetLet: "r", vowelLet: "e", codaLet: "", onset: "r", vowel: "e", coda: null },
+                    { letters: "so", onsetLet: "s", vowelLet: "o", codaLet: "", onset: "z", vowel: "ə", coda: null },
+                    { letters: "na", onsetLet: "n", vowelLet: "a", codaLet: "", onset: "n", vowel: "eɪ", coda: null },
+                    { letters: "tion", onsetLet: "t", vowelLet: "io", codaLet: "n", onset: "ʃ", vowel: "ə", coda: "n" }
+                ]
+            },
+            "action": {
+                word: "action",
+                ipa: "/ˈæk.ʃən/",
+                chunks: [
+                    { letters: "ac", onsetLet: "", vowelLet: "a", codaLet: "c", onset: null, vowel: "æ", coda: "k" },
+                    { letters: "tion", onsetLet: "t", vowelLet: "io", codaLet: "n", onset: "ʃ", vowel: "ə", coda: "n" }
+                ]
+            },
+            "cat": {
+                word: "cat",
+                ipa: "/kæt/",
+                chunks: [
+                    { letters: "cat", onsetLet: "c", vowelLet: "a", codaLet: "t", onset: "k", vowel: "æ", coda: "t" }
+                ]
+            },
+            "sunshine": {
+                word: "sunshine",
+                ipa: "/ˈsʌn.ʃaɪn/",
+                chunks: [
+                    { letters: "sun", onsetLet: "s", vowelLet: "u", codaLet: "n", onset: "s", vowel: "ʌ", coda: "n" },
+                    { letters: "shine", onsetLet: "sh", vowelLet: "i", codaLet: "ne", onset: "ʃ", vowel: "aɪ", coda: "n" }
+                ]
+            },
+            "boat": {
+                word: "boat",
+                ipa: "/bəʊt/",
+                chunks: [
+                    { letters: "boat", onsetLet: "b", vowelLet: "oa", codaLet: "t", onset: "b", vowel: "əʊ", coda: "t" }
+                ]
+            },
+            "playground": {
+                word: "playground",
+                ipa: "/ˈpleɪ.ɡraʊnd/",
+                chunks: [
+                    { letters: "play", onsetLet: "pl", vowelLet: "ay", codaLet: "", onset: "pl", vowel: "eɪ", coda: null },
+                    { letters: "ground", onsetLet: "gr", vowelLet: "ou", codaLet: "nd", onset: "gr", vowel: "aʊ", coda: "nd" }
+                ]
+            }
+        };
+
+        // Standard English valid onset clusters
+        const validOnsetClusters = [
+            "str", "spl", "spr", "scr", "squ",
+            "pl", "pr", "bl", "br", "tr", "dr", "kl", "kr", "cl", "cr",
+            "gl", "gr", "fl", "fr", "th", "sh", "ch", "wh", "ph",
+            "sl", "sm", "sn", "sp", "st", "sk", "sc", "sw", "tw", "dw", "qu"
+        ];
+
+        function decomposeWordAutomatically(rawWord) {
+            const word = rawWord.toLowerCase().trim();
+            if (customWordDatabase[word]) {
+                return customWordDatabase[word];
+            }
+
+            // 1. Check known compound word boundaries
+            const compoundPairs = [
+                ["sun", "shine"], ["play", "ground"], ["sun", "light"], ["class", "room"],
+                ["bed", "room"], ["birth", "day"], ["foot", "ball"],
+                ["rain", "bow"], ["pop", "corn"], ["butter", "fly"]
+            ];
+            for (const [part1, part2] of compoundPairs) {
+                if (word === part1 + part2) {
+                    const c1 = decomposeWordAutomatically(part1).chunks;
+                    const c2 = decomposeWordAutomatically(part2).chunks;
+                    const mergedChunks = [...c1, ...c2];
+                    return {
+                        word: word,
+                        ipa: "/" + mergedChunks.map(c => (c.onset || '') + c.vowel + (c.coda || '')).join(".") + "/",
+                        chunks: mergedChunks
+                    };
+                }
+            }
+
+            // 2. Vowel nucleus identification (handling multi-letter vowel teams)
+            const vowelRegex = /(?:ought|aught|eigh|tion|sion|ture|igh|ai|ay|ee|ea|oa|oe|oo|ou|ow|oi|oy|au|aw|ar|er|ir|or|ur|a|e|i|o|u|y)/gi;
+            const nuclei = [];
+            let vMatch;
+            while ((vMatch = vowelRegex.exec(word)) !== null) {
+                nuclei.push({
+                    text: vMatch[0],
+                    start: vMatch.index,
+                    end: vMatch.index + vMatch[0].length
+                });
+            }
+
+            if (nuclei.length <= 1) {
+                // Monosyllable
+                const v = nuclei[0] || { text: word, start: 0, end: word.length };
+                const onsetStr = word.slice(0, v.start);
+                const codaStr = word.slice(v.end);
+                return createSingleChunkResult(word, onsetStr, v.text, codaStr);
+            }
+
+            // 3. Syllable division based on Maximal Onset Principle (MOP)
+            const splitIndices = [0];
+            for (let i = 0; i < nuclei.length - 1; i++) {
+                const consonantsBetween = word.slice(nuclei[i].end, nuclei[i + 1].start);
+                let splitPoint = nuclei[i].end;
+
+                if (consonantsBetween.length === 0) {
+                    splitPoint = nuclei[i].end;
+                } else if (consonantsBetween.length === 1) {
+                    // Single consonant goes to next syllable onset (e.g. ti-ger)
+                    splitPoint = nuclei[i].end;
+                } else {
+                    // Check if entire consonant string or trailing part is a valid onset cluster
+                    let matchedCluster = false;
+                    for (const cluster of validOnsetClusters) {
+                        if (consonantsBetween.endsWith(cluster)) {
+                            splitPoint = nuclei[i].end + (consonantsBetween.length - cluster.length);
+                            matchedCluster = true;
+                            break;
+                        }
+                    }
+                    if (!matchedCluster) {
+                        // Split between consonants (e.g. dic-tion)
+                        splitPoint = nuclei[i].end + 1;
+                    }
+                }
+                splitIndices.push(splitPoint);
+            }
+            splitIndices.push(word.length);
+
+            const syllables = [];
+            for (let i = 0; i < splitIndices.length - 1; i++) {
+                syllables.push(word.slice(splitIndices[i], splitIndices[i + 1]));
+            }
+
+            const chunks = syllables.map((syl, idx) => {
+                let onsetLet = "";
+                let vowelLet = syl;
+                let codaLet = "";
+
+                const m = syl.match(/^([^aeiouy]*)([aeiouy]+(?:[aeiouy]+)?)(.*)$/i);
+                if (m) {
+                    onsetLet = m[1];
+                    vowelLet = m[2];
+                    codaLet = m[3];
+                }
+
+                return mapPhonicsParts(syl, onsetLet, vowelLet, codaLet, idx, syllables.length);
+            });
+
+            return {
+                word: word,
+                ipa: "/" + chunks.map(c => (c.onset || '') + c.vowel + (c.coda || '')).join(".") + "/",
+                chunks: chunks
+            };
+        }
+
+        function createSingleChunkResult(word, onsetLet, vowelLet, codaLet) {
+            const chunk = mapPhonicsParts(word, onsetLet, vowelLet, codaLet, 0, 1);
+            return {
+                word: word,
+                ipa: `/${(chunk.onset || '')}${chunk.vowel}${(chunk.coda || '')}/`,
+                chunks: [chunk]
+            };
+        }
+
+        function mapPhonicsParts(syl, onsetLet, vowelLet, codaLet, idx, totalSyls) {
+            let onset = null;
+            let vowel = "æ";
+            let coda = null;
+
+            if (syl.includes("tion")) {
+                return { letters: syl, onsetLet: "t", vowelLet: "io", codaLet: "n", onset: "ʃ", vowel: "ə", coda: "n" };
+            }
+
+            // Vowel IPA mapping
+            if (/(?:ought|bought|thought|brought|fought|sought)/i.test(syl)) {
+                vowel = "ɔː";
+                codaLet = "t";
+            } else if (/^au/i.test(syl)) vowel = "ɒ";
+            else if (/aw|au/i.test(vowelLet)) vowel = "ɔː";
+            else if (/ee|ea/i.test(vowelLet)) vowel = "iː";
+            else if (/oo/i.test(vowelLet)) vowel = "uː";
+            else if (/oa/i.test(vowelLet)) vowel = "əʊ";
+            else if (/ai|ay/i.test(vowelLet)) vowel = "eɪ";
+            else if (/ou|ow/i.test(vowelLet)) vowel = "aʊ";
+            else if (/oi|oy/i.test(vowelLet)) vowel = "ɔɪ";
+            else if (/ar/i.test(syl)) vowel = "ɑː";
+            else if (/er|ir|ur/i.test(syl)) vowel = "ɜː";
+            else if (/or/i.test(syl)) vowel = "ɔː";
+            else if (/a/i.test(vowelLet)) {
+                vowel = (idx === totalSyls - 1 && syl === "a") ? "ə" : "æ";
+            } else if (/e/i.test(vowelLet)) vowel = "e";
+            else if (/i/i.test(vowelLet)) vowel = "ɪ";
+            else if (/o/i.test(vowelLet)) vowel = "ɒ";
+            else if (/u/i.test(vowelLet)) vowel = "ʌ";
+            else if (/y/i.test(vowelLet)) vowel = (idx === totalSyls - 1) ? "i" : "aɪ";
+
+            // Onset mapping
+            if (onsetLet.length > 0) {
+                onset = onsetLet.toLowerCase()
+                    .replace(/sh/g, 'ʃ')
+                    .replace(/ch/g, 'tʃ')
+                    .replace(/th/g, 'θ')
+                    .replace(/ph/g, 'f')
+                    .replace(/c(?=[eiy])/g, 's')
+                    .replace(/c/g, 'k')
+                    .replace(/qu/g, 'kw');
+            }
+
+            // Coda mapping
+            if (codaLet.length > 0) {
+                coda = codaLet.toLowerCase()
+                    .replace(/sh/g, 'ʃ')
+                    .replace(/ch/g, 'tʃ')
+                    .replace(/th/g, 'θ')
+                    .replace(/ck/g, 'k')
+                    .replace(/ng/g, 'ŋ')
+                    .replace(/c/g, 'k');
+            }
+
+            return {
+                letters: syl,
+                onsetLet: onsetLet,
+                vowelLet: vowelLet,
+                codaLet: codaLet,
+                onset: onset,
+                vowel: vowel,
+                coda: coda
+            };
+        }
+
+        function renderChunkLetters(c, step = 0) {
+            const oClass = (step >= 2 && c.onsetLet) ? 'text-emerald-600 font-black' : 'text-slate-800';
+            const vClass = (step >= 1 && c.vowelLet) ? 'text-red-500 font-black' : 'text-slate-800';
+            const cdClass = (step >= 3 && c.codaLet) ? 'text-purple-600 font-black' : 'text-slate-800';
+
+            const o = c.onsetLet ? `<span class="${oClass}">${c.onsetLet}</span>` : '';
+            const v = c.vowelLet ? `<span class="${vClass}">${c.vowelLet}</span>` : '';
+            const cd = c.codaLet ? `<span class="${cdClass}">${c.codaLet}</span>` : '';
+            return `${o}${v}${cd}`;
+        }
+
+        function renderChunkIPA(c, step = 0) {
+            if (step === 0) {
+                const full = (c.onset || '') + (c.vowel || '') + (c.coda || '');
+                return `/<span class="text-slate-600">${full}</span>/`;
+            }
+            const oClass = (step >= 2 && c.onset) ? 'text-emerald-600 font-black' : 'text-slate-400';
+            const vClass = (step >= 1 && c.vowel) ? 'text-red-500 font-black' : 'text-slate-400';
+            const cdClass = (step >= 3 && c.coda) ? 'text-purple-600 font-black' : 'text-slate-400';
+
+            const o = c.onset ? `<span class="${oClass}">${c.onset}</span>` : '';
+            const v = c.vowel ? `<span class="${vClass}">${c.vowel}</span>` : '';
+            const cd = c.coda ? `<span class="${cdClass}">${c.coda}</span>` : '';
+            return `/${o}${v}${cd}/`;
+        }
+
+        function updateSyllableDisplay(step = 0) {
+            currentStepLevel = step;
+            if (!currentAnalysis || !currentAnalysis.chunks) return;
+
+            const container = document.getElementById('syllables-container');
+            container.innerHTML = currentAnalysis.chunks.map((chunk, idx) => `
+                <div id="chunk-card-${idx}" onclick="playIndividualChunk(${idx})" class="chunk-card group cursor-pointer bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-blue-400 p-4 sm:p-5 rounded-3xl shadow-sm text-center min-w-[100px] sm:min-w-[120px] transition-all">
+                    <div class="text-[11px] font-black text-blue-500 uppercase tracking-wider mb-2">音節 ${idx + 1}</div>
+                    <div class="text-4xl sm:text-5xl font-black tracking-normal mb-2 transition-transform group-hover:scale-105">
+                        ${renderChunkLetters(chunk, step)}
+                    </div>
+                    <div class="text-sm font-bold font-mono bg-slate-50 rounded-xl py-1 px-2.5 inline-block border border-slate-200 shadow-inner">
+                        ${renderChunkIPA(chunk, step)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function processWord() {
+            const rawVal = document.getElementById('word-input').value.trim();
+            const inputVal = rawVal.toLowerCase() || "dictionary";
+            
+            // 1. Check local pre-configured database
+            if (customWordDatabase[inputVal]) {
+                currentAnalysis = customWordDatabase[inputVal];
+                document.getElementById('display-word').innerText = currentAnalysis.word;
+                document.getElementById('display-ipa').innerText = currentAnalysis.ipa;
+                updateSyllableDisplay(0);
+                updateStatus('Ready');
+                return;
+            }
+
+            // 2. Generate initial breakdown via enhanced UK Phonics engine
+            currentAnalysis = decomposeWordAutomatically(inputVal);
+            document.getElementById('display-word').innerText = rawVal || currentAnalysis.word;
+            document.getElementById('display-ipa').innerText = currentAnalysis.ipa;
+            updateSyllableDisplay(0);
+
+            // 3. Query Official Free Dictionary API with Case-fallback (e.g. australia -> Australia)
+            updateStatus('正在同步檢索官方英式詞庫 (UK IPA)...', true);
+            try {
+                let res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(inputVal)}`);
+                if (!res.ok && inputVal.length > 0) {
+                    // Try capitalized for proper nouns (countries, names, etc.)
+                    const capitalized = inputVal.charAt(0).toUpperCase() + inputVal.slice(1);
+                    res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(capitalized)}`);
+                }
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data[0]) {
+                        const entry = data[0];
+                        let ukIpa = '';
+
+                        // Prioritize British English (UK / GB)
+                        if (entry.phonetics && entry.phonetics.length > 0) {
+                            const ukMatch = entry.phonetics.find(p => (p.audio && (p.audio.includes('-uk') || p.audio.includes('-gb'))) || (p.text && (p.text.includes('ɔː') || p.text.includes('əʊ') || p.text.includes('ɒ'))));
+                            if (ukMatch && ukMatch.text) {
+                                ukIpa = ukMatch.text;
+                            } else {
+                                const anyWithText = entry.phonetics.find(p => p.text);
+                                if (anyWithText) ukIpa = anyWithText.text;
+                            }
+                        }
+
+                        if (!ukIpa && entry.phonetic) {
+                            ukIpa = entry.phonetic;
+                        }
+
+                        if (ukIpa) {
+                            currentAnalysis.ipa = ukIpa;
+                            document.getElementById('display-ipa').innerText = ukIpa;
+                            
+                            // Align syllable vowels with official IPA vowels if available
+                            const cleanIpa = ukIpa.replace(/[\/ˈˌ]/g, '');
+                            const ipaVowels = cleanIpa.match(/(?:iː|uː|ɔː|ɑː|ɜː|eɪ|aɪ|ɔɪ|əʊ|aʊ|ɪə|eə|ʊə|ɪ|i|e|æ|ʌ|ɒ|ʊ|u|ə)/g);
+                            if (ipaVowels && ipaVowels.length === currentAnalysis.chunks.length) {
+                                currentAnalysis.chunks.forEach((chunk, i) => {
+                                    chunk.vowel = ipaVowels[i];
+                                });
+                                updateSyllableDisplay(currentStepLevel);
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn("Dictionary API fetch skipped, using local UK Phonics rules.", err);
+            }
+
+            updateStatus('Ready');
+        }
+
+        function stopAllPlayback() {
+            activeSessionId++;
+            window.speechSynthesis.cancel();
+            activeAudioElements.forEach(a => {
+                try {
+                    a.pause();
+                    a.currentTime = 0;
+                } catch(e){}
+            });
+            activeAudioElements = [];
+            clearVisualHighlights();
+            updateStatus('Ready');
+        }
+
+        function updateStatus(text, isPlaying = false) {
+            const el = document.getElementById('play-status');
+            if (!el) return;
+            if (isPlaying) {
+                el.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> <span class="text-emerald-600 font-bold">${text}</span>`;
+            } else {
+                el.innerHTML = `<span class="text-slate-400 font-semibold">${text}</span>`;
+            }
+        }
+
+        function clearVisualHighlights() {
+            document.querySelectorAll('.chunk-card').forEach(c => c.classList.remove('playing'));
+            document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('playing'));
+        }
+
+        const getGoogleUK = (q) => `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en-gb&q=${encodeURIComponent(q)}`;
+
+        const ipaAudioMap = {
+            // Vowels
+            "iː": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/i-gvz91l.mp3",
+            "i": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/i-gvz91l.mp3",
+            "ɪ": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/small_cap_i-p6cj9p.mp3",
+            "ʊ": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/horseshoe-1inthj0.mp3",
+            "uː": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/u-1mr7xyn.mp3",
+            "u": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/u-1mr7xyn.mp3",
+            "e": getGoogleUK("eh"),
+            "ə": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/mid_central-gqxn5h.mp3",
+            "ɜː": getGoogleUK("err"),
+            "ɔː": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/open_o-1olavce.mp3",
+            "æ": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/ash-qgmo8e.mp3",
+            "ʌ": getGoogleUK("uh"),
+            "ɑː": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/ah-1f3x3pk.mp3",
+            "ɒ": getGoogleUK("o"),
+            // Diphthongs
+            "ɪə": getGoogleUK("ear"),
+            "eɪ": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/e-qxx7n8.mp3",
+            "ʊə": getGoogleUK("curious"),
+            "ɔɪ": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/oi-15ych4z.mp3",
+            "əʊ": getGoogleUK("oh"),
+            "eə": getGoogleUK("air"),
+            "aɪ": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/ai-vmgin8.mp3",
+            "aʊ": "https://cdn.vocabulary.com/media/dictionary/ipa/vowels/ow-mmmc8y.mp3",
+            // Consonants
+            "p": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/p-1it7yor.mp3",
+            "b": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/b-1r9c1qm.mp3",
+            "t": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/t-1ygqg9g.mp3",
+            "d": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/d-9gcnn8.mp3",
+            "k": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/k-19h13fx.mp3",
+            "g": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/g-yfu8hw.mp3",
+            "tʃ": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/voiceless_affricate-1athyop.mp3",
+            "dʒ": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/voiced_affricate-1f87c12.mp3",
+            "f": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/f-1o300yb.mp3",
+            "v": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/v-1byjed.mp3",
+            "θ": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/theta-ip7r5s.mp3",
+            "ð": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/eth-icm6j7.mp3",
+            "s": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/s-uozw9d.mp3",
+            "z": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/z-4qicum.mp3",
+            "ʃ": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/sh-fpj6ik.mp3",
+            "ʒ": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/zh-fy90bw.mp3",
+            "m": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/m-guw48u.mp3",
+            "n": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/n-1smc314.mp3",
+            "ŋ": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/eng-k596t3.mp3",
+            "h": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/h-1mgl9zt.mp3",
+            "w": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/w-1dz44nh.mp3",
+            "j": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/j-x57k1g.mp3",
+            "r": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/r-1xq1912.mp3",
+            "l": "https://cdn.vocabulary.com/media/dictionary/ipa/consonants/l-1o1w14c.mp3"
+        };
+
+        // Plays an audio slice (startPercent to endPercent) using native HTML5 Audio
+        function playAudioSlice(symbol, startPercent = 0, endPercent = 100, sessionId = activeSessionId) {
+            return new Promise((resolve) => {
+                if (sessionId !== activeSessionId || !symbol || !ipaAudioMap[symbol]) {
+                    resolve();
+                    return;
+                }
+
+                const primaryUrl = ipaAudioMap[symbol];
+                let completed = false;
+                let activeAudio = null;
+
+                const finish = () => {
+                    if (completed) return;
+                    completed = true;
+                    if (activeAudio) {
+                        try { activeAudio.pause(); } catch(e){}
+                        const idx = activeAudioElements.indexOf(activeAudio);
+                        if (idx !== -1) activeAudioElements.splice(idx, 1);
+                    }
+                    resolve();
+                };
+
+                const startAudioPlayback = (urlToPlay) => {
+                    if (sessionId !== activeSessionId || completed) {
+                        finish();
+                        return;
+                    }
+
+                    const audio = new Audio(urlToPlay);
+                    audio.preload = "auto";
+                    activeAudio = audio;
+                    activeAudioElements.push(audio);
+
+                    // Safety timeout (max 2.5s) to prevent hanging
+                    const safetyTimer = setTimeout(() => {
+                        finish();
+                    }, 2500);
+
+                    // When playing 100% full duration (認元音), wait for natural audio end
+                    if (startPercent === 0 && endPercent >= 95) {
+                        audio.onended = () => {
+                            clearTimeout(safetyTimer);
+                            finish();
+                        };
+                        audio.onerror = () => {
+                            clearTimeout(safetyTimer);
+                            finish();
+                        };
+                        audio.play().catch(() => {
+                            finish();
+                        });
+                        return;
+                    }
+
+                    // For partial slices (70% onset or 50% coda):
+                    const executeSlice = () => {
+                        const totalDur = (audio.duration && !isNaN(audio.duration) && audio.duration > 0.05) ? audio.duration : 0.45;
+                        const startSec = totalDur * (startPercent / 100);
+                        const endSec = totalDur * (endPercent / 100);
+                        const sliceMs = Math.max(80, (endSec - startSec) * 1000);
+
+                        try {
+                            if (startSec > 0) audio.currentTime = startSec;
+                        } catch(e){}
+
+                        audio.onplaying = () => {
+                            setTimeout(() => {
+                                clearTimeout(safetyTimer);
+                                finish();
+                            }, sliceMs);
+                        };
+
+                        audio.play().catch(() => finish());
+                    };
+
+                    if (audio.readyState >= 2) {
+                        executeSlice();
+                    } else {
+                        audio.onloadeddata = () => executeSlice();
+                        audio.onerror = () => {
+                            clearTimeout(safetyTimer);
+                            finish();
+                        };
+                    }
+                };
+
+                startAudioPlayback(primaryUrl);
+            });
+        }
+
+        // Handles single phonemes or consonant clusters (e.g., "tr" -> "t" + "r", "pl" -> "p" + "l")
+        async function playSymbolOrCluster(symbol, startPercent, endPercent, sessionId) {
+            if (!symbol || sessionId !== activeSessionId) return;
+            if (ipaAudioMap[symbol]) {
+                await playAudioSlice(symbol, startPercent, endPercent, sessionId);
+                return;
+            }
+            // Decompose cluster into recognized phonemes
+            const phonemes = [];
+            let rem = symbol;
+            while (rem.length > 0) {
+                if (rem.startsWith('tʃ') || rem.startsWith('dʒ')) {
+                    phonemes.push(rem.slice(0, 2));
+                    rem = rem.slice(2);
+                } else {
+                    phonemes.push(rem[0]);
+                    rem = rem.slice(1);
+                }
+            }
+            for (const p of phonemes) {
+                if (sessionId !== activeSessionId) return;
+                if (ipaAudioMap[p]) {
+                    await playAudioSlice(p, startPercent, endPercent, sessionId);
+                }
+            }
+        }
+
+        async function playStepAudioForChunk(chunk, step, sessionId) {
+            if (sessionId !== activeSessionId) return;
+
+            if (step === 1) {
+                // Step 1: 認元音 (Vowel 100%)
+                if (chunk.vowel) {
+                    await playAudioSlice(chunk.vowel, 0, 100, sessionId);
+                }
+            } else if (step === 2) {
+                // Step 2: 拼頭音 (Onset 70% + Vowel 100%)
+                // Supports clusters like "tr", "pl" seamlessly
+                if (chunk.onset) {
+                    await playSymbolOrCluster(chunk.onset, 0, 70, sessionId);
+                }
+                if (sessionId !== activeSessionId) return;
+                if (chunk.vowel) {
+                    await playAudioSlice(chunk.vowel, 0, 100, sessionId);
+                }
+            } else if (step === 3) {
+                // Step 3: 加尾音 (Onset 70% + Vowel 100% + Coda 後 50%)
+                if (chunk.onset) {
+                    await playSymbolOrCluster(chunk.onset, 0, 70, sessionId);
+                }
+                if (sessionId !== activeSessionId) return;
+                if (chunk.vowel) {
+                    await playAudioSlice(chunk.vowel, 0, 100, sessionId);
+                }
+                if (sessionId !== activeSessionId) return;
+                if (chunk.coda) {
+                    await playSymbolOrCluster(chunk.coda, 50, 100, sessionId);
+                }
+            }
+        }
+
+        async function runAudioStepSequence(step) {
+            stopAllPlayback();
+            const currentSession = activeSessionId;
+
+            if (!currentAnalysis || !currentAnalysis.chunks.length) return;
+
+            const stepBtn = document.getElementById(`step-btn-${step}`);
+            if (stepBtn) stepBtn.classList.add('playing');
+
+            const stepNames = { 1: "認元音 (Vowel)", 2: "拼頭音 (Onset 70%)", 3: "加尾音 (Coda 50%)" };
+
+            // Calibrated pause interval between syllables (chunks) based on complexity
+            // Step 1: 380ms, Step 2: 480ms, Step 3: 560ms
+            let chunkInterval = 380;
+            if (step === 2) chunkInterval = 480;
+            if (step === 3) chunkInterval = 560;
+
+            // Repeat twice for learning reinforcement
+            for (let round = 1; round <= 2; round++) {
+                if (currentSession !== activeSessionId) return;
+                updateStatus(`播放中: ${stepNames[step]} [第 ${round}/2 次]...`, true);
+
+                for (let i = 0; i < currentAnalysis.chunks.length; i++) {
+                    if (currentSession !== activeSessionId) return;
+                    const chunk = currentAnalysis.chunks[i];
+
+                    // Highlight chunk
+                    const chunkCard = document.getElementById(`chunk-card-${i}`);
+                    if (chunkCard) chunkCard.classList.add('playing');
+
+                    await playStepAudioForChunk(chunk, step, currentSession);
+
+                    if (chunkCard) chunkCard.classList.remove('playing');
+
+                    // Wider, comfortable gap between syllables to let children absorb each syllable
+                    if (i < currentAnalysis.chunks.length - 1) {
+                        await new Promise(r => setTimeout(r, chunkInterval));
+                    }
+                }
+
+                // Generous pause between round 1 and round 2
+                if (round === 1) {
+                    await new Promise(r => setTimeout(r, 700));
+                }
+            }
+
+            if (currentSession === activeSessionId) {
+                clearVisualHighlights();
+                updateStatus('完成發音');
+            }
+        }
+
+        function triggerStep4TTS() {
+            stopAllPlayback();
+            const currentSession = activeSessionId;
+            const word = document.getElementById('display-word').innerText;
+            const stepBtn = document.getElementById('step-btn-4');
+            if (stepBtn) stepBtn.classList.add('playing');
+
+            updateStatus('播放中: 4. 全字拼音 (UK Female) [第 1/2 次]...', true);
+
+            const voices = window.speechSynthesis.getVoices();
+            const ukFemaleVoice = voices.find(v => (v.lang.includes('en-GB') || v.lang.includes('en_GB')) && (v.name.includes('Female') || v.name.includes('Victoria') || v.name.includes('Serena') || v.name.includes('Google UK English Female'))) 
+                               || voices.find(v => v.lang.includes('en-GB') || v.lang.includes('en_GB')) 
+                               || null;
+
+            const u1 = new SpeechSynthesisUtterance(word);
+            u1.lang = 'en-GB';
+            u1.rate = 0.85;
+            if (ukFemaleVoice) u1.voice = ukFemaleVoice;
+
+            u1.onend = () => {
+                if (currentSession !== activeSessionId) return;
+                updateStatus('播放中: 4. 全字拼音 (UK Female) [第 2/2 次]...', true);
+
+                setTimeout(() => {
+                    if (currentSession !== activeSessionId) return;
+                    const u2 = new SpeechSynthesisUtterance(word);
+                    u2.lang = 'en-GB';
+                    u2.rate = 0.85;
+                    if (ukFemaleVoice) u2.voice = ukFemaleVoice;
+
+                    u2.onend = () => {
+                        if (currentSession === activeSessionId) {
+                            clearVisualHighlights();
+                            updateStatus('完成發音');
+                        }
+                    };
+                    window.speechSynthesis.speak(u2);
+                }, 500);
+            };
+
+            window.speechSynthesis.speak(u1);
+        }
+
+        function triggerStep(step) {
+            // Progressively reveal phonics colors on the chunk cards matching the active step
+            updateSyllableDisplay(step);
+
+            if (step >= 1 && step <= 3) {
+                runAudioStepSequence(step);
+            } else if (step === 4) {
+                triggerStep4TTS();
+            }
+        }
+
+        async function playIndividualChunk(chunkIdx) {
+            stopAllPlayback();
+            const currentSession = activeSessionId;
+
+            if (!currentAnalysis || !currentAnalysis.chunks[chunkIdx]) return;
+            const chunk = currentAnalysis.chunks[chunkIdx];
+
+            // Reveal full 3-part colors when inspecting an individual chunk
+            updateSyllableDisplay(3);
+
+            const card = document.getElementById(`chunk-card-${chunkIdx}`);
+            if (card) card.classList.add('playing');
+            updateStatus(`正在發音組件: ${chunk.letters} (加尾音)`, true);
+
+            await playStepAudioForChunk(chunk, 3, currentSession);
+
+            if (currentSession === activeSessionId) {
+                if (card) card.classList.remove('playing');
+                updateStatus('Ready');
+            }
+        }
+
+        function switchTab(tabId) {
+            stopAllPlayback();
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`btn-tab-${tabId}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(view => view.classList.remove('active'));
+            document.getElementById(`view-${tabId}`).classList.add('active');
+
+            if (tabId === 'ipa' && document.getElementById('grid-vowels').innerHTML === '') {
+                renderIPAChart();
+            }
+            if (tabId === 'dictionary' && document.getElementById('dict-list').innerHTML === '') {
+                renderDictionary();
+            }
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('info-modal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        const ipaChartDataset = {
+            vowels: [
+                { sym: 'iː', word: 'bean', audio: ipaAudioMap['iː'], src: 'Vocab' },
+                { sym: 'ɪ', word: 'tip', audio: ipaAudioMap['ɪ'], src: 'Vocab' },
+                { sym: 'ʊ', word: 'shook', audio: ipaAudioMap['ʊ'], src: 'Vocab' },
+                { sym: 'uː', word: 'moon', audio: ipaAudioMap['uː'], src: 'Vocab' },
+                { sym: 'e', word: 'met', audio: ipaAudioMap['e'], src: 'Google UK' },
+                { sym: 'ə', word: 'the', audio: ipaAudioMap['ə'], src: 'Vocab' },
+                { sym: 'ɜː', word: 'sir', audio: ipaAudioMap['ɜː'], src: 'Google UK' },
+                { sym: 'ɔː', word: 'shore', audio: ipaAudioMap['ɔː'], src: 'Vocab' },
+                { sym: 'æ', word: 'pan', audio: ipaAudioMap['æ'], src: 'Vocab' },
+                { sym: 'ʌ', word: 'fun', audio: ipaAudioMap['ʌ'], src: 'Google UK' },
+                { sym: 'ɑː', word: 'card', audio: ipaAudioMap['ɑː'], src: 'Vocab' },
+                { sym: 'ɒ', word: 'lock', audio: ipaAudioMap['ɒ'], src: 'Google UK' }
+            ],
+            diphthongs: [
+                { sym: 'ɪə', word: 'dear', audio: ipaAudioMap['ɪə'], src: 'Google UK' },
+                { sym: 'eɪ', word: 'same', audio: ipaAudioMap['eɪ'], src: 'Vocab' },
+                { sym: 'ʊə', word: 'curious', audio: ipaAudioMap['ʊə'], src: 'Google UK' },
+                { sym: 'ɔɪ', word: 'choice', audio: ipaAudioMap['ɔɪ'], src: 'Vocab' },
+                { sym: 'əʊ', word: 'go', audio: ipaAudioMap['əʊ'], src: 'Google UK' },
+                { sym: 'eə', word: 'hair', audio: ipaAudioMap['eə'], src: 'Google UK' },
+                { sym: 'aɪ', word: 'hide', audio: ipaAudioMap['aɪ'], src: 'Vocab' },
+                { sym: 'aʊ', word: 'loud', audio: ipaAudioMap['aʊ'], src: 'Vocab' }
+            ],
+            consonants: [
+                { sym: 'p', word: 'pick', audio: ipaAudioMap['p'], src: 'Vocab' },
+                { sym: 'b', word: 'bed', audio: ipaAudioMap['b'], src: 'Vocab' },
+                { sym: 't', word: 'team', audio: ipaAudioMap['t'], src: 'Vocab' },
+                { sym: 'd', word: 'dine', audio: ipaAudioMap['d'], src: 'Vocab' },
+                { sym: 'k', word: 'code', audio: ipaAudioMap['k'], src: 'Vocab' },
+                { sym: 'g', word: 'get', audio: ipaAudioMap['g'], src: 'Vocab' },
+                { sym: 'tʃ', word: 'choose', audio: ipaAudioMap['tʃ'], src: 'Vocab' },
+                { sym: 'dʒ', word: 'jet', audio: ipaAudioMap['dʒ'], src: 'Vocab' },
+                { sym: 'f', word: 'first', audio: ipaAudioMap['f'], src: 'Vocab' },
+                { sym: 'v', word: 'van', audio: ipaAudioMap['v'], src: 'Vocab' },
+                { sym: 'θ', word: 'thick', audio: ipaAudioMap['θ'], src: 'Vocab' },
+                { sym: 'ð', word: 'these', audio: ipaAudioMap['ð'], src: 'Vocab' },
+                { sym: 's', word: 'saw', audio: ipaAudioMap['s'], src: 'Vocab' },
+                { sym: 'z', word: 'zen', audio: ipaAudioMap['z'], src: 'Vocab' },
+                { sym: 'ʃ', word: 'she', audio: ipaAudioMap['ʃ'], src: 'Vocab' },
+                { sym: 'ʒ', word: 'casual', audio: ipaAudioMap['ʒ'], src: 'Vocab' },
+                { sym: 'm', word: 'mode', audio: ipaAudioMap['m'], src: 'Vocab' },
+                { sym: 'n', word: 'neck', audio: ipaAudioMap['n'], src: 'Vocab' },
+                { sym: 'ŋ', word: 'song', audio: ipaAudioMap['ŋ'], src: 'Vocab' },
+                { sym: 'h', word: 'hard', audio: ipaAudioMap['h'], src: 'Vocab' },
+                { sym: 'w', word: 'watch', audio: ipaAudioMap['w'], src: 'Vocab' },
+                { sym: 'j', word: 'yet', audio: ipaAudioMap['j'], src: 'Vocab' },
+                { sym: 'r', word: 'rug', audio: ipaAudioMap['r'], src: 'Vocab' },
+                { sym: 'l', word: 'look', audio: ipaAudioMap['l'], src: 'Vocab' }
+            ]
+        };
+
+        function renderIPAChart() {
+            const makeCard = (item, theme) => {
+                const badgeStyle = item.src === 'Google UK' ? 'bg-emerald-600' : 'bg-slate-700';
+                return `
+                    <div onclick="playSingleAudioUrl('${item.audio}')" class="relative bg-white border-2 border-slate-200 hover:border-${theme}-400 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow group">
+                        <div class="absolute -top-1.5 -right-1.5 text-[8px] font-bold text-white px-1.5 py-0.5 rounded shadow ${badgeStyle}">${item.src}</div>
+                        <div class="text-2xl font-black text-${theme}-600 mb-0.5 group-hover:scale-110 transition-transform">${item.sym}</div>
+                        <div class="text-[11px] font-bold text-slate-400">${item.word}</div>
+                    </div>
+                `;
+            };
+            document.getElementById('grid-vowels').innerHTML = ipaChartDataset.vowels.map(i => makeCard(i, 'red')).join('');
+            document.getElementById('grid-diphthongs').innerHTML = ipaChartDataset.diphthongs.map(i => makeCard(i, 'orange')).join('');
+            document.getElementById('grid-consonants').innerHTML = ipaChartDataset.consonants.map(i => makeCard(i, 'blue')).join('');
+        }
+
+        function playSingleAudioUrl(url) {
+            stopAllPlayback();
+            const a = new Audio(url);
+            a.play().catch(e => console.warn(e));
+        }
+
+        const sampleDictWords = Object.keys(customWordDatabase);
+
+        function renderDictionary() {
+            const list = document.getElementById('dict-list');
+            list.innerHTML = sampleDictWords.map(w => `
+                <button onclick="loadWordFromDict('${w}')" class="bg-slate-50 hover:bg-blue-50 border-2 border-slate-100 hover:border-blue-400 p-3 rounded-xl font-bold text-slate-700 transition-colors text-left flex justify-between items-center">
+                    ${w} <span class="text-[10px] bg-emerald-100 text-emerald-700 font-black px-2 py-0.5 rounded">內建</span>
+                </button>
+            `).join('');
+        }
+
+        function filterDictionary() {
+            const q = document.getElementById('dict-search').value.toLowerCase();
+            const filtered = sampleDictWords.filter(w => w.includes(q));
+            const list = document.getElementById('dict-list');
+            list.innerHTML = filtered.map(w => `
+                <button onclick="loadWordFromDict('${w}')" class="bg-slate-50 hover:bg-blue-50 border-2 border-slate-100 hover:border-blue-400 p-3 rounded-xl font-bold text-slate-700 transition-colors text-left flex justify-between items-center">
+                    ${w} <span class="text-[10px] bg-emerald-100 text-emerald-700 font-black px-2 py-0.5 rounded">內建</span>
+                </button>
+            `).join('');
+        }
+
+        function loadWordFromDict(w) {
+            document.getElementById('word-input').value = w;
+            switchTab('main');
+            processWord();
+        }
+
+        const stopWordsSet = new Set(['the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me']);
+        let extractedList = [];
+
+        function extractVocab() {
+            const txt = document.getElementById('extract-input').value.toLowerCase();
+            if (!txt.trim()) return;
+            const words = txt.replace(/[^a-z\s]/g, ' ').split(/\s+/);
+            const set = new Set();
+            words.forEach(w => { if (w.length > 2 && !stopWordsSet.has(w)) set.add(w); });
+            extractedList = Array.from(set).sort();
+            renderExtracted();
+        }
+
+        function renderExtracted() {
+            const grid = document.getElementById('extracted-grid');
+            grid.innerHTML = extractedList.map(w => `
+                <button onclick="loadWordFromDict('${w}')" class="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-500 hover:text-white text-blue-700 border border-blue-200 font-bold rounded-xl transition-all shadow-sm">
+                    ${w} ➔
+                </button>
+            `).join('');
+        }
+
+        function selectAllExtracted(select) {
+            if (!select) {
+                extractedList = [];
+                renderExtracted();
+            } else {
+                extractVocab();
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            processWord();
+        });
+    </script>
+</body>
+</html>
