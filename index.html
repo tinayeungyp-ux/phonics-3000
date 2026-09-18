@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- 引入開源離線 OCR 引擎，實現純本機真實手寫辨識  -->
+    <!-- 引入開源離線 OCR 引擎，實現純本機真實手寫辨識 -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     
@@ -141,9 +141,9 @@
             color: #000000 !important;
         }
 
-        /* ==========================================================
+        /* ==========================================================================
            右手邊選單（Side Drawer #nav-drawer）在黑白模式下的文字與按鈕全面黑字化
-           ========================================================== */
+           ========================================================================== */
         [data-theme="grayscale"] #nav-drawer,
         [data-theme="grayscale"] #nav-drawer * {
             color: #000000 !important;
@@ -1211,7 +1211,6 @@
                 if (dict[key]) el.placeholder = dict[key];
             });
 
-            // 更新選單切換按鈕狀態
             const btnZh = document.getElementById('lang-btn-zh');
             const btnEn = document.getElementById('lang-btn-en');
             if (btnZh && btnEn) {
@@ -1234,7 +1233,6 @@
             document.body.setAttribute('data-theme', theme);
             document.documentElement.setAttribute('data-theme', theme);
 
-            // 更新按鈕樣式
             ['default', 'colorblind', 'grayscale'].forEach(t => {
                 const btn = document.getElementById(`theme-btn-${t}`);
                 if (btn) {
@@ -1261,10 +1259,8 @@
         let currentAnalysis = null;
         let currentStepLevel = 0;
 
-        // Google UK TTS URL 生成器
         const getGoogleUK = (q) => `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en-gb&q=${encodeURIComponent(q)}`;
 
-        // 高可靠性全字英國女性發音播放器
         function playWholeWordAudioUK(word, repeats = 2, sessionId = activeSessionId) {
             return new Promise(async (resolve) => {
                 if (!word) { resolve(); return; }
@@ -3698,9 +3694,51 @@
             reader.readAsText(file);
         }
 
+        /* ==========================================================================
+           🚀 核心數據管線：自動遠端預載入 words.json
+           ========================================================================== */
+        const WORDS_STORAGE_KEY = 'phonics_custom_words_db_v1';
+
+        async function loadDatabasePipeline() {
+            try {
+                // 1. 優先從本機快取還原
+                const localSaved = localStorage.getItem(WORDS_STORAGE_KEY);
+                if (localSaved) {
+                    try {
+                        const parsed = JSON.parse(localSaved);
+                        if (Object.keys(parsed).length > 5) {
+                            Object.assign(customWordDatabase, parsed);
+                        }
+                    } catch (e) {}
+                }
+
+                // 2. 從同目錄下抓取 words.json（帶有防快取時間戳）
+                const res = await fetch('./words.json?v=' + Date.now(), { cache: 'no-store' });
+                if (res.ok) {
+                    const remoteWords = await res.json();
+                    if (remoteWords && typeof remoteWords === 'object') {
+                        Object.assign(customWordDatabase, remoteWords);
+                        try {
+                            localStorage.setItem(WORDS_STORAGE_KEY, JSON.stringify(customWordDatabase));
+                        } catch (e) {}
+                        console.log(`✅ [成功] 完整載入遠端 words.json，共 ${Object.keys(remoteWords).length} 個詞彙！`);
+                        showToast(`✓ 已成功載入 ${Object.keys(remoteWords).length} 核心字庫`, "success");
+                    }
+                } else {
+                    console.warn(`⚠️ 無法讀取 words.json，HTTP 狀態碼: ${res.status}`);
+                }
+            } catch (err) {
+                console.warn("⚠️ 載入 words.json 發生錯誤，使用預設庫。", err);
+            }
+
+            if (typeof renderDictionary === 'function') renderDictionary();
+            if (typeof populateSubsetSelectors === 'function') populateSubsetSelectors();
+            processWord();
+        }
+
         window.addEventListener('load', () => {
             loadSubsetsFromStorage();
-            processWord();
+            loadDatabasePipeline(); // 執行自動預載入 3000 字庫
 
             // 讀取偏好設定
             try {
