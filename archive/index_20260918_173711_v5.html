@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-HK" data-theme="default">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
+    <title>Phonics 3000</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-btn { transition: all 0.2s ease-in-out; }
+        .nav-btn.active { background-color: #2563eb; color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4); }
+        .nav-btn:hover:not(.active) { background-color: #e2e8f0; }
+        .ipa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 10px; }
+        .chunk-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .chunk-card:hover { transform: translateY(-3px); }
+        .chunk-card.playing { ring: 4px solid #3b82f6; transform: scale(1.04); background-color: #eff6ff !important; }
+        .step-btn.playing { border-color: #3b82f6; background-color: #eff6ff; transform: translateY(-2px); }
+        
+        .fluid-word-title { font-size: clamp(2.2rem, 7vw, 3.8rem); line-height: 1.1; }
+        .fluid-chunk-letter { font-size: clamp(1.25rem, 5.5vw, 2.5rem); line-height: 1.25; }
+        .fluid-chunk-ipa { font-size: clamp(0.7rem, 2.4vw, 0.95rem); }
+
+        .phonics-token { display: inline-block; transition: all 0.15s ease; }
+        .phonics-vowel { font-weight: 900; }
+        .phonics-onset { font-weight: 800; }
+        .phonics-coda { font-weight: 800; }
+        .phonics-silent { opacity: 0.65; text-decoration: line-through; }
+
+        [data-theme="default"] .phonics-vowel.is-active { color: #ef4444; }
+        [data-theme="default"] .phonics-coda.is-active { color: #9333ea; }
+        [data-theme="default"] .phonics-onset.is-active { color: #059669; }
+        [data-theme="default"] .phonics-silent { color: #94a3b8; }
+        [data-theme="default"] .phonics-token:not(.is-active):not(.phonics-silent) { color: #1e293b; }
+
+        [data-theme="colorblind"] .phonics-onset.is-active { color: #059669; border-bottom: 2.5px solid #059669; padding-bottom: 1px; }
+        [data-theme="colorblind"] .phonics-vowel.is-active { color: #b91c1c; background: #fee2e2; border-radius: 6px; padding: 0 4px; border-bottom: 3.5px double #dc2626; }
+        [data-theme="colorblind"] .phonics-coda.is-active { color: #7e22ce; border-bottom: 2.5px dashed #7e22ce; padding-bottom: 1px; }
+        [data-theme="colorblind"] .phonics-silent { color: #64748b; }
+
+        [data-theme="grayscale"] body,
+        [data-theme="grayscale"] main,
+        [data-theme="grayscale"] header,
+        [data-theme="grayscale"] aside,
+        [data-theme="grayscale"] .bg-white,
+        [data-theme="grayscale"] .bg-slate-50,
+        [data-theme="grayscale"] .bg-slate-100,
+        [data-theme="grayscale"] .bg-blue-50,
+        [data-theme="grayscale"] .bg-indigo-50,
+        [data-theme="grayscale"] .bg-amber-50,
+        [data-theme="grayscale"] .bg-emerald-50,
+        [data-theme="grayscale"] .bg-gradient-to-b,
+        [data-theme="grayscale"] #syllables-container,
+        [data-theme="grayscale"] #word-definition-card,
+        [data-theme="grayscale"] .chunk-card,
+        [data-theme="grayscale"] .step-btn,
+        [data-theme="grayscale"] #fc-card,
+        [data-theme="grayscale"] #scramble-setup-box,
+        [data-theme="grayscale"] .scramble-box-slot,
+        [data-theme="grayscale"] .scramble-box-tile,
+        [data-theme="grayscale"] .fluid-chunk-ipa {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            background-image: none !important;
+        }
+        [data-theme="grayscale"] .border,
+        [data-theme="grayscale"] .border-2,
+        [data-theme="grayscale"] .border-slate-100,
+        [data-theme="grayscale"] .border-slate-200 { border-color: #94a3b8 !important; }
+        [data-theme="grayscale"] #nav-drawer, [data-theme="grayscale"] #nav-drawer * { color: #000000 !important; }
+
+        .scramble-box-slot { width: clamp(34px, 7.5vw, 44px); height: clamp(44px, 9.5vw, 54px); transition: all 0.12s ease-out; }
+        .scramble-box-tile { width: clamp(34px, 7.5vw, 44px); height: clamp(44px, 9.5vw, 52px); transition: all 0.12s ease-out; }
+        .four-line-grid { background-color: #ffffff; background-image: linear-gradient(#f1f5f9 1px, transparent 1px), linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(#f87171 1px, transparent 1px), linear-gradient(#cbd5e1 1px, transparent 1px); background-size: 100% 70px; background-position: 0 10px, 0 28px, 0 46px, 0 64px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col antialiased select-none" data-theme="default">
+
+    <!-- Header -->
+    <header class="bg-white shadow-xs border-b-2 border-slate-200 px-4 py-2.5 shrink-0 z-30 sticky top-0">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 cursor-pointer" onclick="selectNavTab('main')">
+                <span>🚀 Phonics 3000</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="nav-active-label" class="text-xs font-bold bg-blue-50 text-blue-600 px-2.5 py-1 rounded-xl">🏠 主頁拆解引擎</span>
+                <button onclick="toggleNavMenu(true)" class="p-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center transition-colors shadow-xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Side Drawer -->
+    <div id="nav-drawer-backdrop" onclick="toggleNavMenu(false)" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden transition-opacity"></div>
+    <aside id="nav-drawer" class="fixed top-0 right-0 h-full w-72 max-w-[80vw] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-4 flex flex-col justify-between overflow-y-auto">
+        <div class="space-y-3.5">
+            <div class="flex justify-between items-center pb-2.5 border-b border-slate-100">
+                <div class="font-black text-base text-slate-900 flex items-center gap-2"><span>🧭</span> <span>功能模組導覽</span></div>
+                <button onclick="toggleNavMenu(false)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-black flex items-center justify-center">&times;</button>
+            </div>
+            <div class="space-y-1 text-sm font-bold">
+                <button onclick="selectNavTab('main')" id="btn-tab-main" class="nav-btn active w-full text-left px-3 py-2 rounded-xl text-slate-700 bg-slate-50 flex items-center gap-2.5">🏠 主頁拆解引擎</button>
+                <button onclick="selectNavTab('extractor')" id="btn-tab-extractor" class="nav-btn w-full text-left px-3 py-2 rounded-xl text-slate-700 bg-slate-50 flex items-center gap-2.5">📝 課文生字提取</button>
+                <button onclick="selectNavTab('dictionary')" id="btn-tab-dictionary" class="nav-btn w-full text-left px-3 py-2 rounded-xl text-slate-700 bg-slate-50 flex items-center gap-2.5">📖 核心字庫</button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-auto p-3.5 sm:p-6 md:p-8">
+        <div class="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+
+            <!-- VIEW: EXTRACTOR (重點測試區) -->
+            <div id="view-extractor" class="tab-content active bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xs border-2 border-slate-100 space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-2 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">📝 課文生字提取與智慧詞根還原</h2>
+                        <p class="text-slate-500 font-semibold text-xs sm:text-sm">自動識別動詞時態，智能保留 e 尾音與還原形容詞原形。</p>
+                    </div>
+                    <label class="flex items-center gap-2 cursor-pointer bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 text-xs font-black text-emerald-800">
+                        <input type="checkbox" id="chk-lemmatize" checked class="w-4 h-4 rounded text-emerald-600 accent-emerald-600">
+                        <span>🌱 智能形態還原 (moved ➔ move, arrived ➔ arrive)</span>
+                    </label>
+                </div>
+
+                <textarea id="extract-input" rows="4" class="w-full p-3.5 border-2 border-slate-200 rounded-2xl font-semibold text-xs sm:text-sm bg-slate-50 focus:bg-white" placeholder="在此貼上課文內容... (例如: Harry moved and arrived, the close door was enraged...)"></textarea>
+                
+                <div class="flex gap-2">
+                    <button onclick="extractVocab()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-xs sm:text-sm shadow-xs">
+                        🔍 提取生字
+                    </button>
+                </div>
+
+                <div id="extracted-grid" class="flex flex-wrap gap-2 min-h-[80px] p-3 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                    <div class="text-slate-400 text-xs font-bold py-6 text-center w-full">請貼上文字後點擊提取。</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        let customWordDatabase = {
+            "move": { word: "move", ipa: "/muːv/", pos: "verb", chunks: [{ letters: "move", vowel: "uː", coda: "v" }] },
+            "arrive": { word: "arrive", ipa: "/əˈraɪv/", pos: "verb", chunks: [{ letters: "arrive", vowel: "aɪ", coda: "v" }] },
+            "close": { word: "close", ipa: "/kləʊz/", pos: "adj/verb", chunks: [{ letters: "close", vowel: "əʊ", coda: "z" }] },
+            "dress": { word: "dress", ipa: "/drɛs/", pos: "verb", chunks: [{ letters: "dress", vowel: "e", coda: "s" }] }
+        };
+
+        const irregularLemmas = {
+            "went": "go", "ran": "run", "knives": "knife", "children": "child", "bought": "buy"
+        };
+
+        /* ==========================================================================
+           🌟 升級版：智慧字典校驗與動態形態還原引擎 (Dictionary-Validated Lemmatizer)
+           ========================================================================== */
+        function lemmatizeWord(raw) {
+            const w = raw.toLowerCase().trim();
+            if (irregularLemmas[w]) return { root: irregularLemmas[w], original: w };
+
+            // 1. 若本身存在於詞庫中（例如 close, enraged, dress 等常見詞），直接返回，避免被盲目切尾
+            if (customWordDatabase[w]) {
+                return { root: w, original: w };
+            }
+
+            // 2. 處理 -ies ➔ -y (例如: dries ➔ dry)
+            if (w.endsWith("ies") && w.length > 4) {
+                const candidate = w.slice(0, -3) + "y";
+                if (customWordDatabase[candidate]) return { root: candidate, original: w };
+                return { root: candidate, original: w };
+            }
+
+            // 3. 處理 -ing (例如: moving ➔ move, running ➔ run)
+            if (w.endsWith("ing") && w.length > 4) {
+                const base1 = w.slice(0, -3); // moved-like removal
+                const candidateWithE = base1 + "e"; // 嘗試補回 e (moving ➔ move)
+                
+                if (customWordDatabase[base1]) return { root: base1, original: w };
+                if (customWordDatabase[candidateWithE]) return { root: candidateWithE, original: w };
+                return { root: base1, original: w };
+            }
+
+            // 4. 處理 -ed / -d (例如: moved ➔ move, arrived ➔ arrive, closed ➔ close)
+            if (w.endsWith("ed") && w.length > 3) {
+                const base1 = w.slice(0, -2); // moved ➔ mov
+                const candidateWithE = base1 + "e"; // mov + e ➔ move
+                const baseDouble = base1.length > 2 && base1[base1.length-1] === base1[base1.length-2] ? base1.slice(0, -1) : null;
+
+                if (customWordDatabase[w]) return { root: w, original: w };
+                if (customWordDatabase[candidateWithE]) return { root: candidateWithE, original: w };
+                if (customWordDatabase[base1]) return { root: base1, original: w };
+                if (baseDouble && customWordDatabase[baseDouble]) return { root: baseDouble, original: w };
+                
+                // 若字典未收錄但確定是規則動詞，優先補回 e (mov ➔ move)
+                return { root: candidateWithE, original: w };
+            }
+
+            // 5. 處理複數 -s / -es (例如: boxes ➔ box)
+            if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3) {
+                const base1 = w.slice(0, -1);
+                const baseEs = w.slice(0, -2);
+                if (customWordDatabase[base1]) return { root: base1, original: w };
+                if (customWordDatabase[baseEs] && w.endsWith("es")) return { root: baseEs, original: w };
+                return { root: base1, original: w };
+            }
+
+            return { root: w, original: w };
+        }
+
+        let extractedItems = [];
+        const stopWordsSet = new Set(['the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they']);
+
+        function extractVocab() {
+            let txt = document.getElementById('extract-input').value.toLowerCase();
+            if (!txt.trim()) return;
+
+            txt = txt.replace(/n['’]t\b/gi, ' not').replace(/['’]s\b/gi, '').replace(/[^a-z\s]/g, ' ');
+            const shouldLemmatize = document.getElementById('chk-lemmatize')?.checked ?? true;
+            const words = txt.split(/\s+/);
+            const seenMap = new Map();
+
+            words.forEach(raw => {
+                const clean = raw.trim();
+                if (clean.length > 2 && !stopWordsSet.has(clean)) {
+                    const lem = shouldLemmatize ? lemmatizeWord(clean) : { root: clean, original: clean };
+                    if (!seenMap.has(lem.root)) seenMap.set(lem.root, lem.original);
+                }
+            });
+
+            extractedItems = Array.from(seenMap.entries()).map(([root, original]) => ({ root, original, selected: true }));
+            renderExtracted();
+        }
+
+        function renderExtracted() {
+            const grid = document.getElementById('extracted-grid');
+            if (!grid) return;
+
+            grid.innerHTML = extractedItems.map((item) => `
+                <div class="cursor-pointer px-3 py-1.5 rounded-xl border-2 bg-white text-slate-700 border-slate-200 flex items-center gap-1.5">
+                    <span class="text-xs font-bold">${item.root !== item.original ? `${item.original} ➔ <b>${item.root}</b>` : item.root}</span>
+                </div>
+            `).join('');
+        }
+
+        function toggleNavMenu(show) {
+            const backdrop = document.getElementById('nav-drawer-backdrop');
+            const drawer = document.getElementById('nav-drawer');
+            if (!backdrop || !drawer) return;
+            backdrop.classList.toggle('hidden', !show);
+            drawer.classList.toggle('translate-x-full', !show);
+        }
+
+        function selectNavTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(view => view.classList.remove('active'));
+            document.getElementById(`view-${tabId}`).classList.add('active');
+            toggleNavMenu(false);
+        }
+
+        async function loadDatabasePipeline() {
+            try {
+                const res = await fetch('./words.json?v=' + Date.now(), { cache: 'no-store' });
+                if (res.ok) {
+                    const remoteWords = await res.json();
+                    Object.assign(customWordDatabase, remoteWords);
+                }
+            } catch (err) {}
+        }
+
+        window.addEventListener('load', () => { loadDatabasePipeline(); });
+    </script>
+</body>
+</html>
