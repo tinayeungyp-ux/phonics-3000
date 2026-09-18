@@ -1,0 +1,36 @@
+name: Auto Archive Previous Version and Deploy
+
+on:
+  push:
+    paths:
+      - 'index.html' # 只有當 index.html 發生修改時觸發
+    branches:
+      - main
+
+jobs:
+  archive-previous:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # 提取前一次 commit 以便取出舊版內容
+
+      - name: Archive Previous index.html
+        run: |
+          mkdir -p archive
+          # 獲取前一次 commit 的 index.html 內容
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          ARCHIVE_FILE="archive/index_${TIMESTAMP}.html"
+          
+          # 將上一個版本的 index.html 提取並寫入 archive 目錄
+          git show HEAD~1:index.html > "$ARCHIVE_FILE" || echo "No previous version found"
+          
+          # 如果成功生成了歸檔檔案，自動提交到倉庫
+          if [ -s "$ARCHIVE_FILE" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add "$ARCHIVE_FILE"
+            git commit -m "Auto-archive: 封存前版至 $ARCHIVE_FILE [skip ci]"
+            git push origin main
+          fi
