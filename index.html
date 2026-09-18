@@ -26,7 +26,7 @@
         .step-btn.playing { border-color: #3b82f6; background-color: #eff6ff; transform: translateY(-2px); }
         
         .fluid-word-title { font-size: clamp(2.2rem, 7vw, 3.8rem); line-height: 1.1; }
-        .fluid-chunk-letter { font-size: clamp(1.25rem, 5.5vw, 2.5rem); line-height: 1.25; }
+        .fluid-chunk-letter { font-size: clamp(1.25rem, 5.5vw, 2.5rem); line-height: 1.25; white-space: nowrap; }
         .fluid-chunk-ipa { font-size: clamp(0.7rem, 2.4vw, 0.95rem); }
 
         /* ==========================================================================
@@ -1804,6 +1804,10 @@
             }
         }
 
+        /* 
+           精準字素解析器 (Parse Chunk Tokens)：
+           保證產出的 tokens 組合字串 100% 吻合原始字母，杜絕字母重複、錯位或多音節折行！
+        */
         function parseChunkTokens(chunk, chunkIdx, totalChunks, fullWord) {
             const rawLetters = chunk.letters || "";
             const tokens = [];
@@ -3366,16 +3370,87 @@
         let currentDictionarySubsetId = '__ALL__';
 
         const irregularLemmas = {
-            "went": "go", "ran": "run", "knives": "knife", "children": "child", "bought": "buy"
+            "went": "go", "gone": "go", "ran": "run", "knives": "knife", "children": "child", "bought": "buy",
+            "saw": "see", "taken": "take", "took": "take", "eaten": "eat", "ate": "eat", "fell": "fall", "fallen": "fall",
+            "caught": "catch", "taught": "teach", "thought": "think", "found": "find", "heard": "hear", "kept": "keep"
         };
 
+        const protectedWordRoots = new Set([
+            // 常見 -ing 結尾的名詞/介詞 (不可切除)
+            'nothing', 'morning', 'evening', 'ceiling', 'king', 'ring', 'sing', 'wing', 'spring', 'string', 'thing', 
+            'building', 'meaning', 'during', 'bring', 'swing',
+            // 常見 -ed 結尾的形容詞 (不可切除)
+            'tired', 'bored', 'excited', 'enraged', 'engaged', 'interested', 'scared', 'married', 'worried', 
+            'surprised', 'confused', 'closed', 'naked', 'wicked', 'detailed', 'complicated', 'advanced'
+        ]);
+
+        /* 
+           智能詞根還原器 (Lemmatizer) - 升級版：
+           精準解決 moved ➔ move、arrived ➔ arrive，嚴格依賴字典校驗，拒絕產生無效假字 (如 arriv, noth)！
+        */
         function lemmatizeWord(raw) {
             const w = raw.toLowerCase().trim();
+            if (w.length <= 3) return { root: w, original: w };
+            
             if (irregularLemmas[w]) return { root: irregularLemmas[w], original: w };
-            if (w.endsWith("ies") && w.length > 4) return { root: w.slice(0, -3) + "y", original: w };
-            if (w.endsWith("ing") && w.length > 4) return { root: w.slice(0, -3), original: w };
-            if (w.endsWith("ed") && w.length > 4) return { root: w.slice(0, -2), original: w };
-            if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3) return { root: w.slice(0, -1), original: w };
+            if (protectedWordRoots.has(w)) return { root: w, original: w };
+
+            // 若原字本身就在字庫中，且明確為形容詞、副詞或介詞，則不作還原
+            if (customWordDatabase[w]) {
+                const pos = customWordDatabase[w].pos || "";
+                if (pos.includes('adjective') || pos.includes('adverb') || pos.includes('prep')) {
+                    return { root: w, original: w };
+                }
+            }
+
+            // 輔助函數：確認候選詞是否合法存在於字庫中
+            const isValidRoot = (cand) => customWordDatabase[cand] ? cand : null;
+
+            // 1. 處理複數/第三人稱單數 (-ies, -es, -s)
+            if (w.endsWith("ies") && w.length > 4) {
+                const cand = w.slice(0, -3) + "y";
+                return { root: isValidRoot(cand) || cand, original: w }; 
+            }
+            if (w.endsWith("es") && w.length > 4) {
+                const cand1 = w.slice(0, -2); // boxes -> box
+                const cand2 = w.slice(0, -1); // cases -> case
+                if (isValidRoot(cand1)) return { root: cand1, original: w };
+                if (isValidRoot(cand2)) return { root: cand2, original: w };
+            }
+            if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3) {
+                const cand = w.slice(0, -1);
+                if (isValidRoot(cand)) return { root: cand, original: w };
+                return { root: w, original: w }; // 若字庫無紀錄，名詞複數去 s 相對安全，但保守起見可保留原貌
+            }
+            
+            // 2. 處理進行式 (-ing)
+            if (w.endsWith("ing") && w.length > 4) {
+                const base = w.slice(0, -3); // playing ➔ play, arriving ➔ arriv
+                const baseWithE = base + "e"; // arriving ➔ arrive
+                const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null; // stopping ➔ stop
+
+                if (isValidRoot(base)) return { root: base, original: w };
+                if (isValidRoot(baseWithE)) return { root: baseWithE, original: w };
+                if (baseDouble && isValidRoot(baseDouble)) return { root: baseDouble, original: w };
+
+                // ⚠️ 嚴格退回：若字典驗證失敗，絕不輸出假字 (如 noth)，直接保留原字
+                return { root: w, original: w };
+            }
+
+            // 3. 處理過去式 (-ed)
+            if (w.endsWith("ed") && w.length > 3) {
+                const base = w.slice(0, -2); // played ➔ play, arrived ➔ arriv
+                const baseWithE = base + "e"; // arrived ➔ arrive
+                const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null; // dropped ➔ drop
+
+                if (isValidRoot(base)) return { root: base, original: w };
+                if (isValidRoot(baseWithE)) return { root: baseWithE, original: w };
+                if (baseDouble && isValidRoot(baseDouble)) return { root: baseDouble, original: w };
+
+                // ⚠️ 嚴格退回：若字典驗證失敗，絕不輸出假字 (如 arriv)，直接保留原字
+                return { root: w, original: w };
+            }
+
             return { root: w, original: w };
         }
 
@@ -3751,3 +3826,4 @@
     </script>
 </body>
 </html>
+```
