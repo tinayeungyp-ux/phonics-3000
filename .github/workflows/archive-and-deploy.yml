@@ -6,7 +6,11 @@ on:
       - 'index.html' # 只有當 index.html 發生修改時觸發
     branches:
       - main
-
+      
+# 加入此段宣告寫入權限
+permissions:
+  contents: write
+  
 jobs:
   archive-previous:
     runs-on: ubuntu-latest
