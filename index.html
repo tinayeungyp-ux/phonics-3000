@@ -141,6 +141,16 @@
             color: #000000 !important;
         }
 
+        /* 黑白模式下將深色按鈕轉為高對比白底黑字 */
+        [data-theme="grayscale"] .bg-blue-600,
+        [data-theme="grayscale"] .bg-emerald-600,
+        [data-theme="grayscale"] .bg-indigo-600 {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border: 2px solid #000000 !important;
+            box-shadow: none !important;
+        }
+
         /* ==========================================================================
            右手邊選單（Side Drawer #nav-drawer）在黑白模式下的文字與按鈕全面黑字化
            ========================================================================== */
@@ -180,13 +190,6 @@
             color: #000000 !important;
             border: 1.5px solid #64748b !important;
             box-shadow: none !important;
-        }
-
-        [data-theme="grayscale"] #nav-drawer .bg-blue-600,
-        [data-theme="grayscale"] #nav-drawer .bg-blue-50 {
-            background-color: #ffffff !important;
-            border: 2px solid #000000 !important;
-            color: #000000 !important;
         }
 
         /* 頂部導航指示標籤 */
@@ -295,16 +298,17 @@
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col antialiased select-none" data-theme="default">
 
-    <!-- Header (精簡選單按鈕以增加頂部空間) -->
-    <header class="bg-white shadow-xs border-b-2 border-slate-200 px-4 py-2.5 shrink-0 z-30 sticky top-0">
+    <!-- Header (加入向下拉動縮小過渡動畫) -->
+    <header id="main-header" class="bg-white shadow-xs border-b-2 border-slate-200 px-4 py-2.5 shrink-0 z-30 sticky top-0 transition-all duration-300">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
-            <div class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 cursor-pointer" onclick="selectNavTab('main')">
+            <div id="app-title" class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 cursor-pointer transition-all duration-300" onclick="selectNavTab('main')">
                 <span>🚀 Phonics 3000</span>
             </div>
             
             <div class="flex items-center gap-2">
-                <span id="nav-active-label" class="text-xs font-bold bg-blue-50 text-blue-600 px-2.5 py-1 rounded-xl flex items-center gap-1">
-                    <span>🏠</span> <span data-i18n="nav_main">主頁拆解引擎</span>
+                <!-- 精簡了文字，只顯示當前模組的 Icon -->
+                <span id="nav-active-label" class="text-base bg-blue-50 text-blue-600 px-2.5 py-1 rounded-xl flex items-center justify-center">
+                    🏠
                 </span>
                 <button onclick="toggleNavMenu(true)" class="p-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center transition-colors shadow-xs" aria-label="Menu" title="Menu">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -579,6 +583,7 @@
                             <div id="fc-word" class="fluid-word-title font-black text-slate-900 tracking-tight my-2">climb</div>
                             <div id="fc-ipa" class="text-lg sm:text-xl font-mono font-bold text-blue-600 bg-white px-3.5 py-1 rounded-xl border border-slate-200 inline-block mb-3">/klaɪm/</div>
                             
+                            <!-- 修改：閃卡支援點擊音節獨立發音 -->
                             <div id="fc-chunks-box" class="flex justify-center gap-2 my-2 overflow-x-auto p-1"></div>
 
                             <div id="fc-def-box" class="hidden mt-2 bg-amber-50 rounded-2xl p-3 border border-amber-200 text-left">
@@ -926,7 +931,7 @@
                 </div>
 
                 <input type="text" id="dict-search" onkeyup="filterDictionary()" class="w-full px-3.5 py-2.5 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none font-bold text-xs sm:text-sm bg-slate-50 focus:bg-white" placeholder="搜尋核心詞彙 (如: accept, dictionary, because, curious...)">
-                <div id="dict-list" class="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[50vh] overflow-y-auto pr-1"></div>
+                <div id="dict-list" class="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[50vh] overflow-y-auto pr-1 p-1"></div>
             </div>
 
             <!-- VIEW 6: IPA CHART -->
@@ -1250,6 +1255,23 @@
             try { localStorage.setItem('phonics_theme_pref', theme); } catch (e) {}
             updateSyllableDisplay(currentStepLevel);
         }
+
+        /* ==========================================================================
+           Header Scroll Shrink Animation (滾動縮小動畫)
+           ========================================================================== */
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            const title = document.getElementById('app-title');
+            if (window.scrollY > 15) {
+                header.classList.replace('py-2.5', 'py-1.5');
+                title.classList.replace('text-xl', 'text-lg');
+                title.classList.replace('sm:text-2xl', 'sm:text-xl');
+            } else {
+                header.classList.replace('py-1.5', 'py-2.5');
+                title.classList.replace('text-lg', 'text-xl');
+                title.classList.replace('sm:text-xl', 'sm:text-2xl');
+            }
+        });
 
         /* ==========================================================================
            3. 聲學切片與發音引擎 (Vocabulary.com + Google UK 原音)
@@ -1804,10 +1826,7 @@
             }
         }
 
-        /* 
-           精準字素解析器 (Parse Chunk Tokens)：
-           保證產出的 tokens 組合字串 100% 吻合原始字母，杜絕字母重複、錯位或多音節折行！
-        */
+        // 精準的字素對應映射，杜絕字母與音標混用導致的錯位與 klclib Bug
         function parseChunkTokens(chunk, chunkIdx, totalChunks, fullWord) {
             const rawLetters = chunk.letters || "";
             const tokens = [];
@@ -1815,20 +1834,16 @@
 
             const explicitSilentMap = new Map();
             if (chunk.silentTokens && Array.isArray(chunk.silentTokens)) {
-                chunk.silentTokens.forEach(st => {
-                    explicitSilentMap.set(st.char.toLowerCase(), st.note);
-                });
+                chunk.silentTokens.forEach(st => explicitSilentMap.set(st.char.toLowerCase(), st.note));
             }
 
             let silentPrefix = "";
             let silentPrefixNote = "";
             if (chunkIdx === 0) {
                 if (lower.startsWith("kn") && (!chunk.onset || !chunk.onset.startsWith("k"))) {
-                    silentPrefix = "k";
-                    silentPrefixNote = "kn- 組合：k 不發音";
+                    silentPrefix = "k"; silentPrefixNote = "kn- 組合：k 不發音";
                 } else if (lower.startsWith("wr") && (!chunk.onset || !chunk.onset.startsWith("w"))) {
-                    silentPrefix = "w";
-                    silentPrefixNote = "wr- 組合：w 不發音";
+                    silentPrefix = "w"; silentPrefixNote = "wr- 組合：w 不發音";
                 }
             }
 
@@ -1836,11 +1851,9 @@
             let silentSuffixNote = "";
             if (chunkIdx === totalChunks - 1 || totalChunks === 1) {
                 if (lower.endsWith("e") && !chunk.vowelLet?.toLowerCase().endsWith("e") && chunk.vowel !== "i" && chunk.vowel !== "iː" && chunk.vowel !== "e") {
-                    silentSuffix = "e";
-                    silentSuffixNote = "Magic e：結尾 e 不發音";
+                    silentSuffix = "e"; silentSuffixNote = "Magic e：結尾 e 不發音";
                 } else if (lower.endsWith("mb") && chunk.coda && !chunk.coda.includes("b")) {
-                    silentSuffix = "b";
-                    silentSuffixNote = "-mb 結尾：b 不發音";
+                    silentSuffix = "b"; silentSuffixNote = "-mb 結尾：b 不發音";
                 }
             }
 
@@ -1850,17 +1863,14 @@
                 tokens.push({ char: rem.slice(0, silentPrefix.length), type: "silent", note: silentPrefixNote });
                 rem = rem.slice(silentPrefix.length);
             }
-
             if (chunk.onsetLet && rem.toLowerCase().startsWith(chunk.onsetLet.toLowerCase())) {
                 tokens.push({ char: rem.slice(0, chunk.onsetLet.length), type: "onset" });
                 rem = rem.slice(chunk.onsetLet.length);
             }
-
             if (chunk.vowelLet && rem.toLowerCase().startsWith(chunk.vowelLet.toLowerCase())) {
                 tokens.push({ char: rem.slice(0, chunk.vowelLet.length), type: "vowel" });
                 rem = rem.slice(chunk.vowelLet.length);
             }
-
             if (rem.length > 0) {
                 if (silentSuffix && rem.toLowerCase().endsWith(silentSuffix)) {
                     const codaPart = rem.slice(0, rem.length - silentSuffix.length);
@@ -2515,16 +2525,10 @@
             toggleNavMenu(false);
 
             const labelMap = { 
-                main: '🏠 主頁拆解引擎', 
-                dictionary: '📖 核心字庫', 
-                extractor: '📝 課文提取', 
-                ipa: '📊 國際音標', 
-                flashcard: '🎴 智能閃卡', 
-                scramble: '✍️ 拼字挑戰',
-                profile: '👤 會員專區'
+                main: '🏠', dictionary: '📖', extractor: '📝', ipa: '📊', flashcard: '🎴', scramble: '✍️', profile: '👤'
             };
             const label = document.getElementById('nav-active-label');
-            if (label && labelMap[tabId]) label.innerText = labelMap[tabId];
+            if (label && labelMap[tabId]) label.innerHTML = `<span>${labelMap[tabId]}</span>`;
 
             if (tabId === 'ipa' && document.getElementById('grid-vowels').innerHTML === '') {
                 renderIPAChart();
@@ -2612,12 +2616,14 @@
             if (toggleText) toggleText.innerText = (currentLang === 'en') ? 'Show English Definition' : '顯示英文解釋';
 
             let entry = customWordDatabase[currentWord] || decomposeWordAutomatically(currentWord);
+            currentAnalysis = entry; // Enable individual chunk play in flashcard
+
             document.getElementById('fc-ipa').innerText = entry.ipa;
 
             const chunksBox = document.getElementById('fc-chunks-box');
             if (chunksBox && entry.chunks) {
-                chunksBox.innerHTML = entry.chunks.map(c => `
-                    <div class="px-3 py-1 bg-white rounded-xl border border-slate-200 text-center">
+                chunksBox.innerHTML = entry.chunks.map((c, idx) => `
+                    <div onclick="playIndividualChunk(${idx})" class="px-3 py-1 bg-white rounded-xl border border-slate-200 text-center cursor-pointer hover:bg-blue-50 hover:border-blue-400 transition-colors shadow-2xs">
                         <div class="font-extrabold text-xs text-slate-800">${c.letters}</div>
                         <div class="text-[10px] text-blue-600 font-mono">/${(c.onset || '') + c.vowel + (c.coda || '')}/</div>
                     </div>
@@ -3370,24 +3376,16 @@
         let currentDictionarySubsetId = '__ALL__';
 
         const irregularLemmas = {
-            "went": "go", "gone": "go", "ran": "run", "knives": "knife", "children": "child", "bought": "buy",
-            "saw": "see", "taken": "take", "took": "take", "eaten": "eat", "ate": "eat", "fell": "fall", "fallen": "fall",
-            "caught": "catch", "taught": "teach", "thought": "think", "found": "find", "heard": "hear", "kept": "keep"
+            "went": "go", "ran": "run", "knives": "knife", "children": "child", "bought": "buy"
         };
 
         const protectedWordRoots = new Set([
-            // 常見 -ing 結尾的名詞/介詞 (不可切除)
             'nothing', 'morning', 'evening', 'ceiling', 'king', 'ring', 'sing', 'wing', 'spring', 'string', 'thing', 
             'building', 'meaning', 'during', 'bring', 'swing',
-            // 常見 -ed 結尾的形容詞 (不可切除)
             'tired', 'bored', 'excited', 'enraged', 'engaged', 'interested', 'scared', 'married', 'worried', 
             'surprised', 'confused', 'closed', 'naked', 'wicked', 'detailed', 'complicated', 'advanced'
         ]);
 
-        /* 
-           智能詞根還原器 (Lemmatizer) - 升級版：
-           精準解決 moved ➔ move、arrived ➔ arrive，嚴格依賴字典校驗，拒絕產生無效假字 (如 arriv, noth)！
-        */
         function lemmatizeWord(raw) {
             const w = raw.toLowerCase().trim();
             if (w.length <= 3) return { root: w, original: w };
@@ -3395,7 +3393,7 @@
             if (irregularLemmas[w]) return { root: irregularLemmas[w], original: w };
             if (protectedWordRoots.has(w)) return { root: w, original: w };
 
-            // 若原字本身就在字庫中，且明確為形容詞、副詞或介詞，則不作還原
+            // 若該字本身在字庫中已被標記為獨立基礎詞性 (形容詞, 副詞等)
             if (customWordDatabase[w]) {
                 const pos = customWordDatabase[w].pos || "";
                 if (pos.includes('adjective') || pos.includes('adverb') || pos.includes('prep')) {
@@ -3403,51 +3401,45 @@
                 }
             }
 
-            // 輔助函數：確認候選詞是否合法存在於字庫中
             const isValidRoot = (cand) => customWordDatabase[cand] ? cand : null;
 
-            // 1. 處理複數/第三人稱單數 (-ies, -es, -s)
             if (w.endsWith("ies") && w.length > 4) {
                 const cand = w.slice(0, -3) + "y";
                 return { root: isValidRoot(cand) || cand, original: w }; 
             }
             if (w.endsWith("es") && w.length > 4) {
-                const cand1 = w.slice(0, -2); // boxes -> box
-                const cand2 = w.slice(0, -1); // cases -> case
+                const cand1 = w.slice(0, -2);
+                const cand2 = w.slice(0, -1);
                 if (isValidRoot(cand1)) return { root: cand1, original: w };
                 if (isValidRoot(cand2)) return { root: cand2, original: w };
             }
             if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3) {
                 const cand = w.slice(0, -1);
                 if (isValidRoot(cand)) return { root: cand, original: w };
-                return { root: w, original: w }; // 若字庫無紀錄，名詞複數去 s 相對安全，但保守起見可保留原貌
+                return { root: w, original: w };
             }
             
-            // 2. 處理進行式 (-ing)
             if (w.endsWith("ing") && w.length > 4) {
-                const base = w.slice(0, -3); // playing ➔ play, arriving ➔ arriv
-                const baseWithE = base + "e"; // arriving ➔ arrive
-                const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null; // stopping ➔ stop
+                const base = w.slice(0, -3);
+                const baseWithE = base + "e";
+                const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null;
 
                 if (isValidRoot(base)) return { root: base, original: w };
                 if (isValidRoot(baseWithE)) return { root: baseWithE, original: w };
                 if (baseDouble && isValidRoot(baseDouble)) return { root: baseDouble, original: w };
 
-                // ⚠️ 嚴格退回：若字典驗證失敗，絕不輸出假字 (如 noth)，直接保留原字
                 return { root: w, original: w };
             }
 
-            // 3. 處理過去式 (-ed)
             if (w.endsWith("ed") && w.length > 3) {
-                const base = w.slice(0, -2); // played ➔ play, arrived ➔ arriv
-                const baseWithE = base + "e"; // arrived ➔ arrive
-                const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null; // dropped ➔ drop
+                const base = w.slice(0, -2);
+                const baseWithE = base + "e";
+                const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null;
 
                 if (isValidRoot(base)) return { root: base, original: w };
                 if (isValidRoot(baseWithE)) return { root: baseWithE, original: w };
                 if (baseDouble && isValidRoot(baseDouble)) return { root: baseDouble, original: w };
 
-                // ⚠️ 嚴格退回：若字典驗證失敗，絕不輸出假字 (如 arriv)，直接保留原字
                 return { root: w, original: w };
             }
 
@@ -3621,39 +3613,60 @@
             });
         }
 
+        function removeWordFromSubset(word) {
+             const sub = userSubsets[currentDictionarySubsetId];
+             if(!sub) return;
+             sub.words = sub.words.filter(w => w !== word);
+             saveSubsetsToStorage();
+             renderDictionary();
+             showToast(`已將 ${word} 從清單中移除`, 'info');
+        }
+
         function renderDictionary() {
             const list = document.getElementById('dict-list');
             const countBadge = document.getElementById('dict-count-badge');
             if (!list) return;
 
             let words = Object.keys(customWordDatabase);
+            let isSubset = false;
             if (currentDictionarySubsetId !== '__ALL__' && userSubsets[currentDictionarySubsetId]) {
                 words = userSubsets[currentDictionarySubsetId].words;
+                isSubset = true;
             }
 
             if (countBadge) countBadge.innerText = `收錄: ${words.length} 字`;
 
             list.innerHTML = words.slice(0, 300).map(w => `
-                <div onclick="quickInputWord('${w}'); selectNavTab('main');" class="bg-slate-50 hover:bg-blue-50 border-2 border-slate-100 hover:border-blue-400 p-2.5 rounded-xl font-bold text-xs text-slate-700 transition-colors flex justify-between items-center cursor-pointer group">
-                    <span class="truncate group-hover:text-blue-600">${w}</span>
-                    <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.2 rounded font-black">🚀</span>
+                <div class="bg-slate-50 hover:bg-blue-50 border-2 border-slate-100 hover:border-blue-400 p-2.5 rounded-xl font-bold text-xs text-slate-700 transition-colors flex justify-between items-center group">
+                    <span class="truncate cursor-pointer flex-1" onclick="quickInputWord('${w}'); selectNavTab('main');">${w}</span>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span onclick="quickInputWord('${w}'); selectNavTab('main');" class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.2 rounded font-black cursor-pointer hover:bg-blue-100">🚀</span>
+                        ${isSubset ? `<span onclick="removeWordFromSubset('${w}')" class="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.2 rounded font-black cursor-pointer hover:bg-red-100" title="從清單中移除此字">🗑️</span>` : ''}
+                    </div>
                 </div>
             `).join('');
         }
 
         function filterDictionary() {
             const q = document.getElementById('dict-search')?.value.toLowerCase().trim() || '';
-            let words = (currentDictionarySubsetId !== '__ALL__' && userSubsets[currentDictionarySubsetId]) 
-                ? userSubsets[currentDictionarySubsetId].words 
-                : Object.keys(customWordDatabase);
+            let words = Object.keys(customWordDatabase);
+            let isSubset = false;
+            
+            if (currentDictionarySubsetId !== '__ALL__' && userSubsets[currentDictionarySubsetId]) {
+                words = userSubsets[currentDictionarySubsetId].words;
+                isSubset = true;
+            }
             
             const filtered = words.filter(w => w.includes(q));
             const list = document.getElementById('dict-list');
             if (list) {
                 list.innerHTML = filtered.slice(0, 300).map(w => `
-                    <div onclick="quickInputWord('${w}'); selectNavTab('main');" class="bg-slate-50 hover:bg-blue-50 border-2 border-slate-100 hover:border-blue-400 p-2.5 rounded-xl font-bold text-xs text-slate-700 transition-colors flex justify-between items-center cursor-pointer group">
-                        <span class="truncate group-hover:text-blue-600">${w}</span>
-                        <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.2 rounded font-black">🚀</span>
+                    <div class="bg-slate-50 hover:bg-blue-50 border-2 border-slate-100 hover:border-blue-400 p-2.5 rounded-xl font-bold text-xs text-slate-700 transition-colors flex justify-between items-center group">
+                        <span class="truncate cursor-pointer flex-1" onclick="quickInputWord('${w}'); selectNavTab('main');">${w}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span onclick="quickInputWord('${w}'); selectNavTab('main');" class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.2 rounded font-black cursor-pointer hover:bg-blue-100">🚀</span>
+                            ${isSubset ? `<span onclick="removeWordFromSubset('${w}')" class="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.2 rounded font-black cursor-pointer hover:bg-red-100" title="從清單中移除此字">🗑️</span>` : ''}
+                        </div>
                     </div>
                 `).join('');
             }
@@ -3669,6 +3682,9 @@
                     const workbook = XLSX.read(data, { type: 'array' });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    
+                    Object.keys(customWordDatabase).forEach(k => delete customWordDatabase[k]);
+                    
                     let count = 0;
                     rows.forEach(r => {
                         const wordCell = r?.find(c => typeof c === 'string' && /^[a-zA-Z]{2,20}$/.test(c.trim()));
@@ -3681,7 +3697,7 @@
                         }
                     });
                     renderDictionary();
-                    showToast(`✓ 成功匯入 ${count} 個生字至核心詞庫！`, "success");
+                    showToast(`✓ 成功匯入 ${count} 個生字！預設詞庫已清空。`, "success");
                 } catch(err){ showToast("Excel 解析失敗。", "error"); }
             };
             reader.readAsArrayBuffer(file);
@@ -3776,7 +3792,6 @@
 
         async function loadDatabasePipeline() {
             try {
-                // 1. 優先從本機快取還原
                 const localSaved = localStorage.getItem(WORDS_STORAGE_KEY);
                 if (localSaved) {
                     try {
@@ -3787,11 +3802,11 @@
                     } catch (e) {}
                 }
 
-                // 2. 從同目錄下抓取 words.json（帶有防快取時間戳）
                 const res = await fetch('./words.json?v=' + Date.now(), { cache: 'no-store' });
                 if (res.ok) {
                     const remoteWords = await res.json();
                     if (remoteWords && typeof remoteWords === 'object') {
+                        Object.keys(customWordDatabase).forEach(k => delete customWordDatabase[k]);
                         Object.assign(customWordDatabase, remoteWords);
                         try {
                             localStorage.setItem(WORDS_STORAGE_KEY, JSON.stringify(customWordDatabase));
@@ -3799,8 +3814,6 @@
                         console.log(`✅ [成功] 完整載入遠端 words.json，共 ${Object.keys(remoteWords).length} 個詞彙！`);
                         showToast(`✓ 已成功載入 ${Object.keys(remoteWords).length} 核心字庫`, "success");
                     }
-                } else {
-                    console.warn(`⚠️ 無法讀取 words.json，HTTP 狀態碼: ${res.status}`);
                 }
             } catch (err) {
                 console.warn("⚠️ 載入 words.json 發生錯誤，使用預設庫。", err);
@@ -3813,9 +3826,8 @@
 
         window.addEventListener('load', () => {
             loadSubsetsFromStorage();
-            loadDatabasePipeline(); // 執行自動預載入 3000 字庫
+            loadDatabasePipeline(); 
 
-            // 讀取偏好設定
             try {
                 const savedLang = localStorage.getItem('phonics_lang_pref') || 'zh_HK';
                 const savedTheme = localStorage.getItem('phonics_theme_pref') || 'default';
@@ -3826,4 +3838,3 @@
     </script>
 </body>
 </html>
-```
