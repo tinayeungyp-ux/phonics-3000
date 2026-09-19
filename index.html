@@ -25,9 +25,14 @@
         .chunk-card.playing { ring: 4px solid #3b82f6; transform: scale(1.04); background-color: #eff6ff !important; }
         .step-btn.playing { border-color: #3b82f6; background-color: #eff6ff; transform: translateY(-2px); }
         
-        .fluid-word-title { font-size: clamp(2.2rem, 7vw, 3.8rem); line-height: 1.1; }
+        .fluid-word-title { font-size: clamp(2.2rem, 7vw, 3.8rem); line-height: 1.1; transition: font-size 0.3s ease; }
         .fluid-chunk-letter { font-size: clamp(1.25rem, 5.5vw, 2.5rem); line-height: 1.25; white-space: nowrap; }
         .fluid-chunk-ipa { font-size: clamp(0.7rem, 2.4vw, 0.95rem); }
+
+        /* Header 縮放過渡 */
+        #main-header { transition: padding 0.3s ease, box-shadow 0.3s ease; }
+        .header-shrink { padding-top: 0.375rem !important; padding-bottom: 0.375rem !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .title-shrink { font-size: 1.25rem !important; }
 
         /* ==========================================================================
            ACCESSIBILITY (a11y) & THEME ENGINE - 純 CSS 控制，0 JS 重複代碼
@@ -45,231 +50,74 @@
         [data-theme="default"] .phonics-silent { color: #94a3b8; }
         [data-theme="default"] .phonics-token:not(.is-active):not(.phonics-silent) { color: #1e293b; }
 
-        /* 2. 色盲輔助模式 (Colorblind: 保留色彩 + 幾何形狀/底線符號輔助) */
+        /* 2. 色盲輔助模式 (Colorblind) */
         [data-theme="colorblind"] .phonics-onset.is-active {
-            color: #059669;
-            border-bottom: 2.5px solid #059669;
-            padding-bottom: 1px;
+            color: #059669; border-bottom: 2.5px solid #059669; padding-bottom: 1px;
         }
         [data-theme="colorblind"] .phonics-vowel.is-active {
-            color: #b91c1c;
-            background: #fee2e2;
-            border-radius: 6px;
-            padding: 0 4px;
-            border-bottom: 3.5px double #dc2626;
+            color: #b91c1c; background: #fee2e2; border-radius: 6px; padding: 0 4px; border-bottom: 3.5px double #dc2626;
         }
         [data-theme="colorblind"] .phonics-coda.is-active {
-            color: #7e22ce;
-            border-bottom: 2.5px dashed #7e22ce;
-            padding-bottom: 1px;
+            color: #7e22ce; border-bottom: 2.5px dashed #7e22ce; padding-bottom: 1px;
         }
         [data-theme="colorblind"] .phonics-onset:not(.is-active):not(.phonics-silent) {
-            color: #1e293b;
-            border-bottom: 1.5px solid #cbd5e1;
+            color: #1e293b; border-bottom: 1.5px solid #cbd5e1;
         }
         [data-theme="colorblind"] .phonics-vowel:not(.is-active):not(.phonics-silent) {
-            color: #1e293b;
-            border-bottom: 2px double #cbd5e1;
+            color: #1e293b; border-bottom: 2px double #cbd5e1;
         }
         [data-theme="colorblind"] .phonics-coda:not(.is-active):not(.phonics-silent) {
-            color: #1e293b;
-            border-bottom: 1.5px dashed #cbd5e1;
+            color: #1e293b; border-bottom: 1.5px dashed #cbd5e1;
         }
         [data-theme="colorblind"] .phonics-silent { color: #64748b; }
 
-        /* 3. 電子墨水黑白純淨模式 (Grayscale / E-ink: 純白背景 + 純黑文字 + 俐落框線) */
-        [data-theme="grayscale"] body,
-        [data-theme="grayscale"] main,
-        [data-theme="grayscale"] header,
-        [data-theme="grayscale"] aside,
-        [data-theme="grayscale"] .bg-white,
-        [data-theme="grayscale"] .bg-slate-50,
-        [data-theme="grayscale"] .bg-slate-100,
-        [data-theme="grayscale"] .bg-blue-50,
-        [data-theme="grayscale"] .bg-indigo-50,
-        [data-theme="grayscale"] .bg-amber-50,
-        [data-theme="grayscale"] .bg-emerald-50,
-        [data-theme="grayscale"] .bg-gradient-to-b,
-        [data-theme="grayscale"] #syllables-container,
-        [data-theme="grayscale"] #word-definition-card,
-        [data-theme="grayscale"] .chunk-card,
-        [data-theme="grayscale"] .step-btn,
-        [data-theme="grayscale"] #fc-card,
-        [data-theme="grayscale"] #scramble-setup-box,
-        [data-theme="grayscale"] .scramble-box-slot,
-        [data-theme="grayscale"] .scramble-box-tile,
-        [data-theme="grayscale"] .fluid-chunk-ipa {
-            background: #ffffff !important;
-            background-color: #ffffff !important;
-            background-image: none !important;
+        /* 3. 電子墨水黑白純淨模式 (Grayscale) */
+        [data-theme="grayscale"] body, [data-theme="grayscale"] main, [data-theme="grayscale"] header,
+        [data-theme="grayscale"] aside, [data-theme="grayscale"] .bg-white, [data-theme="grayscale"] .bg-slate-50,
+        [data-theme="grayscale"] .bg-slate-100, [data-theme="grayscale"] .bg-blue-50, [data-theme="grayscale"] .bg-indigo-50,
+        [data-theme="grayscale"] .bg-amber-50, [data-theme="grayscale"] .bg-emerald-50, [data-theme="grayscale"] .bg-gradient-to-b,
+        [data-theme="grayscale"] #syllables-container, [data-theme="grayscale"] #word-definition-card,
+        [data-theme="grayscale"] .chunk-card, [data-theme="grayscale"] .step-btn, [data-theme="grayscale"] #fc-card,
+        [data-theme="grayscale"] #scramble-setup-box, [data-theme="grayscale"] .scramble-box-slot,
+        [data-theme="grayscale"] .scramble-box-tile, [data-theme="grayscale"] .fluid-chunk-ipa {
+            background: #ffffff !important; background-color: #ffffff !important; background-image: none !important;
         }
+        [data-theme="grayscale"] .border, [data-theme="grayscale"] .border-2, [data-theme="grayscale"] .border-slate-100,
+        [data-theme="grayscale"] .border-slate-200, [data-theme="grayscale"] .border-blue-100, [data-theme="grayscale"] .border-indigo-100,
+        [data-theme="grayscale"] .border-dashed { border-color: #94a3b8 !important; }
+        [data-theme="grayscale"] .bg-gradient-to-b { border: 2px solid #475569 !important; box-shadow: none !important; }
 
-        /* 清晰邊框線取代灰色底色 */
-        [data-theme="grayscale"] .border,
-        [data-theme="grayscale"] .border-2,
-        [data-theme="grayscale"] .border-slate-100,
-        [data-theme="grayscale"] .border-slate-200,
-        [data-theme="grayscale"] .border-blue-100,
-        [data-theme="grayscale"] .border-indigo-100,
-        [data-theme="grayscale"] .border-dashed {
-            border-color: #94a3b8 !important;
+        /* 黑白模式下強制高對比按鈕 */
+        [data-theme="grayscale"] .bg-blue-600, [data-theme="grayscale"] .bg-emerald-600, [data-theme="grayscale"] .bg-indigo-600 {
+            background-color: #ffffff !important; color: #000000 !important; border: 2px solid #000000 !important; box-shadow: none !important;
         }
-
-        /* 預覽大卡片以純白底配合高對比框線 */
-        [data-theme="grayscale"] .bg-gradient-to-b {
-            border: 2px solid #475569 !important;
-            box-shadow: none !important;
-        }
-
-        /* 徽章與按鈕純白底 + 黑字 */
-        [data-theme="grayscale"] #ipa-source-badge,
-        [data-theme="grayscale"] #ipa-integrity-badge,
-        [data-theme="grayscale"] #display-ipa,
-        [data-theme="grayscale"] #def-pos-badge,
-        [data-theme="grayscale"] .step-btn {
-            background-color: #ffffff !important;
-            border-color: #94a3b8 !important;
+        [data-theme="grayscale"] .bg-blue-600 *, [data-theme="grayscale"] .bg-emerald-600 *, [data-theme="grayscale"] .bg-indigo-600 * {
             color: #000000 !important;
         }
 
-        [data-theme="grayscale"] #step-btn-4 {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border: 2px solid #000000 !important;
+        [data-theme="grayscale"] #nav-drawer, [data-theme="grayscale"] #nav-drawer * { color: #000000 !important; }
+        [data-theme="grayscale"] #nav-drawer button, [data-theme="grayscale"] #nav-drawer .nav-btn {
+            background-color: #ffffff !important; color: #000000 !important; border-color: #94a3b8 !important;
         }
-        [data-theme="grayscale"] #step-btn-4 span {
-            color: #000000 !important;
-        }
-
-        /* 黑白模式下將深色按鈕轉為高對比白底黑字 */
-        [data-theme="grayscale"] .bg-blue-600,
-        [data-theme="grayscale"] .bg-emerald-600,
-        [data-theme="grayscale"] .bg-indigo-600 {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border: 2px solid #000000 !important;
-            box-shadow: none !important;
-        }
-
-        /* ==========================================================================
-           右手邊選單（Side Drawer #nav-drawer）在黑白模式下的文字與按鈕全面黑字化
-           ========================================================================== */
-        [data-theme="grayscale"] #nav-drawer,
-        [data-theme="grayscale"] #nav-drawer * {
-            color: #000000 !important;
-        }
-
-        [data-theme="grayscale"] #nav-drawer button,
-        [data-theme="grayscale"] #nav-drawer .nav-btn {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border-color: #94a3b8 !important;
-        }
-
         [data-theme="grayscale"] #nav-drawer .nav-btn.active {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border: 2px solid #000000 !important;
-            font-weight: 900 !important;
-            box-shadow: none !important;
+            background-color: #ffffff !important; color: #000000 !important; border: 2px solid #000000 !important; font-weight: 900 !important;
         }
+        [data-theme="grayscale"] .text-white, [data-theme="grayscale"] button.text-white { color: #000000 !important; }
 
-        [data-theme="grayscale"] #nav-drawer .nav-btn:not(.active) {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border: 1px solid #cbd5e1 !important;
-        }
-
-        /* 語言與無障礙切換按鈕高對比黑字設定 */
-        [data-theme="grayscale"] #nav-drawer #lang-btn-zh,
-        [data-theme="grayscale"] #nav-drawer #lang-btn-en,
-        [data-theme="grayscale"] #nav-drawer #theme-btn-default,
-        [data-theme="grayscale"] #nav-drawer #theme-btn-colorblind,
-        [data-theme="grayscale"] #nav-drawer #theme-btn-grayscale {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border: 1.5px solid #64748b !important;
-            box-shadow: none !important;
-        }
-
-        /* 頂部導航指示標籤 */
-        [data-theme="grayscale"] #nav-active-label {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border: 1.5px solid #000000 !important;
-        }
-
-        /* 全域文字白色強制轉純黑 */
-        [data-theme="grayscale"] .text-white,
-        [data-theme="grayscale"] button.text-white {
-            color: #000000 !important;
-        }
-
-        /* 音節組件黑白樣式 */
-        [data-theme="grayscale"] .phonics-onset.is-active {
-            color: #000000;
-            border-bottom: 3px solid #000000;
-            padding-bottom: 1px;
-        }
-        [data-theme="grayscale"] .phonics-vowel.is-active {
-            color: #ffffff !important;
-            background: #000000 !important;
-            border-radius: 6px;
-            padding: 1px 5px;
-            border-bottom: 3px double #94a3b8;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-        [data-theme="grayscale"] .phonics-coda.is-active {
-            color: #000000;
-            border-bottom: 3px dashed #000000;
-            padding-bottom: 1px;
-        }
-        [data-theme="grayscale"] .phonics-onset:not(.is-active):not(.phonics-silent) {
-            color: #000000;
-            border-bottom: 1.5px solid #94a3b8;
-        }
-        [data-theme="grayscale"] .phonics-vowel:not(.is-active):not(.phonics-silent) {
-            color: #000000;
-            border-bottom: 2px double #94a3b8;
-        }
-        [data-theme="grayscale"] .phonics-coda:not(.is-active):not(.phonics-silent) {
-            color: #000000;
-            border-bottom: 1.5px dashed #94a3b8;
-        }
+        [data-theme="grayscale"] .phonics-onset.is-active { color: #000000; border-bottom: 3px solid #000000; padding-bottom: 1px; }
+        [data-theme="grayscale"] .phonics-vowel.is-active { color: #ffffff !important; background: #000000 !important; border-radius: 6px; padding: 1px 5px; }
+        [data-theme="grayscale"] .phonics-coda.is-active { color: #000000; border-bottom: 3px dashed #000000; padding-bottom: 1px; }
+        [data-theme="grayscale"] .phonics-onset:not(.is-active):not(.phonics-silent),
+        [data-theme="grayscale"] .phonics-vowel:not(.is-active):not(.phonics-silent),
+        [data-theme="grayscale"] .phonics-coda:not(.is-active):not(.phonics-silent) { color: #000000; border-bottom: 1.5px solid #94a3b8; }
         [data-theme="grayscale"] .phonics-silent { color: #94a3b8; }
 
-        .scramble-box-slot {
-            width: clamp(34px, 7.5vw, 44px);
-            height: clamp(44px, 9.5vw, 54px);
-            letter-spacing: -0.02em;
-            transition: all 0.12s ease-out;
-        }
-        .scramble-box-slot.active-slot {
-            border-color: #2563eb !important;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35);
-            transform: translateY(-2px);
-        }
-        .scramble-box-tile {
-            width: clamp(34px, 7.5vw, 44px);
-            height: clamp(44px, 9.5vw, 52px);
-            transition: all 0.12s ease-out;
-        }
+        .scramble-box-slot { width: clamp(34px, 7.5vw, 44px); height: clamp(44px, 9.5vw, 54px); letter-spacing: -0.02em; transition: all 0.12s ease-out; }
+        .scramble-box-slot.active-slot { border-color: #2563eb !important; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35); transform: translateY(-2px); }
+        .scramble-box-tile { width: clamp(34px, 7.5vw, 44px); height: clamp(44px, 9.5vw, 52px); transition: all 0.12s ease-out; }
         .scramble-box-tile:active { transform: scale(0.93); }
-
         .scramble-key-btn {
-            width: clamp(26px, 7.5vw, 36px);
-            height: clamp(34px, 8.5vw, 42px);
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-weight: 800;
-            font-size: clamp(12px, 3.2vw, 15px);
-            color: #334155;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: all 0.08s ease;
+            width: clamp(26px, 7.5vw, 36px); height: clamp(34px, 8.5vw, 42px); background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 800; font-size: clamp(12px, 3.2vw, 15px); color: #334155; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.08s ease;
         }
         .scramble-key-btn:active { background-color: #e2e8f0; transform: translateY(1px); }
 
@@ -284,13 +132,8 @@
             background-position: 0 10px, 0 28px, 0 46px, 0 64px;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-5px); }
-            40%, 80% { transform: translateX(5px); }
-        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
         .animate-shake { animation: shake 0.35s ease-in-out; }
-
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
@@ -298,15 +141,15 @@
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col antialiased select-none" data-theme="default">
 
-    <!-- Header (加入向下拉動縮小過渡動畫) -->
-    <header id="main-header" class="bg-white shadow-xs border-b-2 border-slate-200 px-4 py-2.5 shrink-0 z-30 sticky top-0 transition-all duration-300">
+    <!-- Header (新增滾動縮放動畫，精簡導航文字) -->
+    <header id="main-header" class="bg-white shadow-xs border-b-2 border-slate-200 px-4 py-2.5 shrink-0 z-30 sticky top-0">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <div id="app-title" class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 cursor-pointer transition-all duration-300" onclick="selectNavTab('main')">
                 <span>🚀 Phonics 3000</span>
             </div>
             
             <div class="flex items-center gap-2">
-                <!-- 精簡了文字，只顯示當前模組的 Icon -->
+                <!-- 導航標籤只保留 Icon，節省頂部空間 -->
                 <span id="nav-active-label" class="text-base bg-blue-50 text-blue-600 px-2.5 py-1 rounded-xl flex items-center justify-center">
                     🏠
                 </span>
@@ -317,7 +160,7 @@
         </div>
     </header>
 
-    <!-- Side Drawer (包含功能模組導覽與多語言/無障礙設定) -->
+    <!-- Side Drawer -->
     <div id="nav-drawer-backdrop" onclick="toggleNavMenu(false)" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden transition-opacity"></div>
     <aside id="nav-drawer" class="fixed top-0 right-0 h-full w-72 max-w-[80vw] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-4 flex flex-col justify-between overflow-y-auto">
         <div class="space-y-3.5">
@@ -354,13 +197,12 @@
                 </button>
             </div>
 
-            <!-- ✨ 偏好設定區塊 (i18n 國際化 + a11y 無障礙設定) ✨ -->
+            <!-- 偏好設定區塊 -->
             <div class="pt-2 border-t border-slate-100 space-y-2.5">
                 <div class="text-[11px] font-black text-slate-400 px-2.5 uppercase tracking-wider flex items-center gap-1.5">
                     <span>⚙️</span> <span data-i18n="cat_prefs">偏好設定</span>
                 </div>
                 
-                <!-- 語言切換 -->
                 <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 space-y-1">
                     <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">🌐 Language / 語言</label>
                     <div class="flex gap-1">
@@ -369,7 +211,6 @@
                     </div>
                 </div>
 
-                <!-- 無障礙視覺主題切換 -->
                 <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 space-y-1.5">
                     <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">👁️ Accessibility / 視覺模式</label>
                     <div class="flex flex-col gap-1 text-xs">
@@ -389,10 +230,7 @@
                 </div>
             </div>
         </div>
-
-        <div class="pt-3 border-t border-slate-100 text-center text-[11px] font-bold text-slate-400">
-            Phonics 3000 · Science of Reading
-        </div>
+        <div class="pt-3 border-t border-slate-100 text-center text-[11px] font-bold text-slate-400">Phonics 3000 · Science of Reading</div>
     </aside>
 
     <main class="flex-1 overflow-auto p-3.5 sm:p-6 md:p-8">
@@ -410,7 +248,7 @@
                             <span>🔍</span><span data-i18n="btn_decompose">拆解</span>
                         </button>
                     </div>
-                    <div class="flex items-center gap-1.5 overflow-x-auto text-[11px] font-bold text-slate-500 no-scrollbar">
+                    <div id="recommended-words-bar" class="flex items-center gap-1.5 overflow-x-auto text-[11px] font-bold text-slate-500 no-scrollbar">
                         <span class="shrink-0 text-slate-400" data-i18n="recommended_label">推薦試驗：</span>
                         <button onclick="quickInputWord('curious')" class="px-2 py-0.5 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 rounded-md shrink-0">curious</button>
                         <button onclick="quickInputWord('knowledge')" class="px-2 py-0.5 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 rounded-md shrink-0">knowledge</button>
@@ -472,73 +310,37 @@
                     
                     <div id="syllables-container" class="flex flex-nowrap justify-center items-stretch gap-2 sm:gap-3 w-full max-w-full overflow-x-auto py-2 bg-slate-50 rounded-2xl border border-slate-200"></div>
 
-                    <!-- 4-Color Phonics Legend: 按照最新次序 (1. 元音 -> 2. 尾音 -> 3. 頭音) -->
+                    <!-- 4-Color Phonics Legend -->
                     <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[11px] font-extrabold pt-2 border-t border-slate-100 text-slate-600">
-                        <span class="flex items-center gap-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
-                            <span data-i18n="legend_vowel">1. 元音 (Vowel)</span>
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-purple-600 inline-block"></span>
-                            <span data-i18n="legend_coda">2. 尾音 (Coda)</span>
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-                            <span data-i18n="legend_onset">3. 頭音 (Onset)</span>
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span>
-                            <span class="line-through text-slate-400" data-i18n="legend_silent">👻 靜音字母 (Magic E / Silent)</span>
-                        </span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span><span data-i18n="legend_vowel">1. 元音 (Vowel)</span></span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-600 inline-block"></span><span data-i18n="legend_coda">2. 尾音 (Coda)</span></span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span><span data-i18n="legend_onset">3. 頭音 (Onset)</span></span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span><span class="line-through text-slate-400" data-i18n="legend_silent">👻 靜音字母</span></span>
                     </div>
                 </div>
 
-                <!-- 四步自然拼讀推進學習法：依要求切換次序 (1. 認元音 -> 2. 加尾音 -> 3. 拼頭音 -> 4. 全字拼音) -->
                 <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border-2 border-slate-100 shadow-xs space-y-3">
                     <div class="flex justify-between items-center">
-                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider" data-i18n="steps_heading">四步自然拼讀推進學習法 (Onset-Rime 韻部法)：</span>
+                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider" data-i18n="steps_heading">四步自然拼讀推進學習法 (Onset-Rime)：</span>
                         <button onclick="stopAllPlayback()" class="text-[11px] font-bold text-slate-400 hover:text-red-500 transition-colors" data-i18n="btn_stop">停止播放</button>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-                        <!-- Step 1: 認元音 (Vowel 100%) -->
                         <button id="step-btn-1" onclick="triggerStep(1)" class="step-btn flex flex-col items-center justify-center bg-slate-50 border-2 border-slate-200 p-3 sm:p-4 rounded-xl sm:rounded-2xl hover:border-red-400 hover:bg-red-50/40 transition-all group active:scale-95">
-                            <div class="flex items-center gap-1.5 mb-1">
-                                <span class="text-xl group-hover:scale-110 transition-transform">🎯</span>
-                                <span class="text-[10px] font-black bg-red-100 text-red-700 px-1.5 py-0.2 rounded-full" data-i18n="repeat_2x">讀2次</span>
-                            </div>
-                            <span class="font-black text-slate-800 text-xs sm:text-sm" data-i18n="step1_title">1. 認元音</span>
-                            <span class="text-[10px] font-bold text-slate-400 mt-0.5" data-i18n="step1_desc">Vowel 100% (紅字高亮)</span>
+                            <div class="flex items-center gap-1.5 mb-1"><span class="text-xl group-hover:scale-110 transition-transform">🎯</span><span class="text-[10px] font-black bg-red-100 text-red-700 px-1.5 py-0.2 rounded-full" data-i18n="repeat_2x">讀2次</span></div>
+                            <span class="font-black text-slate-800 text-xs sm:text-sm" data-i18n="step1_title">1. 認元音</span><span class="text-[10px] font-bold text-slate-400 mt-0.5" data-i18n="step1_desc">Vowel 100% (紅字高亮)</span>
                         </button>
-
-                        <!-- Step 2: 加尾音 (Vowel + Coda 50%, 韻部 Rime) -->
                         <button id="step-btn-2" onclick="triggerStep(2)" class="step-btn flex flex-col items-center justify-center bg-slate-50 border-2 border-slate-200 p-3 sm:p-4 rounded-xl sm:rounded-2xl hover:border-purple-400 hover:bg-purple-50/40 transition-all group active:scale-95">
-                            <div class="flex items-center gap-1.5 mb-1">
-                                <span class="text-xl group-hover:scale-110 transition-transform">✨</span>
-                                <span class="text-[10px] font-black bg-purple-100 text-purple-700 px-1.5 py-0.2 rounded-full" data-i18n="repeat_2x">讀2次</span>
-                            </div>
-                            <span class="font-black text-slate-800 text-xs sm:text-sm" data-i18n="step2_title">2. 加尾音</span>
-                            <span class="text-[10px] font-bold text-slate-400 mt-0.5" data-i18n="step2_desc">Vowel + Coda (紅+紫 韻部)</span>
+                            <div class="flex items-center gap-1.5 mb-1"><span class="text-xl group-hover:scale-110 transition-transform">✨</span><span class="text-[10px] font-black bg-purple-100 text-purple-700 px-1.5 py-0.2 rounded-full" data-i18n="repeat_2x">讀2次</span></div>
+                            <span class="font-black text-slate-800 text-xs sm:text-sm" data-i18n="step2_title">2. 加尾音</span><span class="text-[10px] font-bold text-slate-400 mt-0.5" data-i18n="step2_desc">Vowel + Coda (紅+紫 韻部)</span>
                         </button>
-
-                        <!-- Step 3: 拼頭音 (Onset 70% + 韻部, 全音節) -->
                         <button id="step-btn-3" onclick="triggerStep(3)" class="step-btn flex flex-col items-center justify-center bg-slate-50 border-2 border-slate-200 p-3 sm:p-4 rounded-xl sm:rounded-2xl hover:border-emerald-400 hover:bg-emerald-50/40 transition-all group active:scale-95">
-                            <div class="flex items-center gap-1.5 mb-1">
-                                <span class="text-xl group-hover:scale-110 transition-transform">🧩</span>
-                                <span class="text-[10px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded-full" data-i18n="repeat_2x">讀2次</span>
-                            </div>
-                            <span class="font-black text-slate-800 text-xs sm:text-sm" data-i18n="step3_title">3. 拼頭音</span>
-                            <span class="text-[10px] font-bold text-slate-400 mt-0.5" data-i18n="step3_desc">Onset 70% + 韻部 (綠+紅+紫)</span>
+                            <div class="flex items-center gap-1.5 mb-1"><span class="text-xl group-hover:scale-110 transition-transform">🧩</span><span class="text-[10px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded-full" data-i18n="repeat_2x">讀2次</span></div>
+                            <span class="font-black text-slate-800 text-xs sm:text-sm" data-i18n="step3_title">3. 拼頭音</span><span class="text-[10px] font-bold text-slate-400 mt-0.5" data-i18n="step3_desc">Onset 70% + 韻部 (綠+紅+紫)</span>
                         </button>
-
-                        <!-- Step 4: 全字拼音 (Google UK 女聲原音) -->
                         <button id="step-btn-4" onclick="triggerStep(4)" class="step-btn flex flex-col items-center justify-center bg-blue-600 hover:bg-blue-700 text-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm transition-all group active:scale-95">
-                            <div class="flex items-center gap-1.5 mb-1">
-                                <span class="text-xl group-hover:scale-110 transition-transform">🗣️</span>
-                                <span class="text-[10px] font-black bg-blue-500 text-white px-1.5 py-0.2 rounded-full" data-i18n="repeat_2x">讀2次</span>
-                            </div>
-                            <span class="font-black text-white text-xs sm:text-sm" data-i18n="step4_title">4. 全字拼音</span>
-                            <span class="text-[10px] font-bold text-blue-100 mt-0.5">Google UK 女聲原音</span>
+                            <div class="flex items-center gap-1.5 mb-1"><span class="text-xl group-hover:scale-110 transition-transform">🗣️</span><span class="text-[10px] font-black bg-blue-500 text-white px-1.5 py-0.2 rounded-full" data-i18n="repeat_2x">讀2次</span></div>
+                            <span class="font-black text-white text-xs sm:text-sm" data-i18n="step4_title">4. 全字拼音</span><span class="text-[10px] font-bold text-blue-100 mt-0.5">Google UK 女聲原音</span>
                         </button>
                     </div>
                 </div>
@@ -583,7 +385,7 @@
                             <div id="fc-word" class="fluid-word-title font-black text-slate-900 tracking-tight my-2">climb</div>
                             <div id="fc-ipa" class="text-lg sm:text-xl font-mono font-bold text-blue-600 bg-white px-3.5 py-1 rounded-xl border border-slate-200 inline-block mb-3">/klaɪm/</div>
                             
-                            <!-- 修改：閃卡支援點擊音節獨立發音 -->
+                            <!-- 閃卡：獨立音節點擊發音 -->
                             <div id="fc-chunks-box" class="flex justify-center gap-2 my-2 overflow-x-auto p-1"></div>
 
                             <div id="fc-def-box" class="hidden mt-2 bg-amber-50 rounded-2xl p-3 border border-amber-200 text-left">
@@ -616,7 +418,7 @@
                 </div>
             </div>
 
-            <!-- VIEW 3: SCRAMBLE WORDS MODE (聽音拼字挑戰 WORKBOOK) -->
+            <!-- VIEW 3: SCRAMBLE WORDS MODE -->
             <div id="view-scramble" class="tab-content bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xs border-2 border-slate-100 space-y-4">
                 <div id="scramble-setup-box" class="max-w-xl mx-auto bg-slate-50 border-2 border-slate-200 rounded-3xl p-5 sm:p-7 space-y-4">
                     <div class="text-center space-y-1 pb-2 border-b border-slate-200">
@@ -931,7 +733,7 @@
                 </div>
 
                 <input type="text" id="dict-search" onkeyup="filterDictionary()" class="w-full px-3.5 py-2.5 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none font-bold text-xs sm:text-sm bg-slate-50 focus:bg-white" placeholder="搜尋核心詞彙 (如: accept, dictionary, because, curious...)">
-                <div id="dict-list" class="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[50vh] overflow-y-auto pr-1 p-1"></div>
+                <div id="dict-list" class="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[50vh] overflow-y-auto pr-1"></div>
             </div>
 
             <!-- VIEW 6: IPA CHART -->
@@ -1021,182 +823,87 @@
 
     <script>
         /* ==========================================================================
-           1. i18n 國際化雙語資料字典
+           1. 滾動縮放 Header 邏輯
+           ========================================================================== */
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            const title = document.getElementById('app-title');
+            if (window.scrollY > 10) {
+                header.classList.add('header-shrink');
+                title.classList.add('title-shrink');
+            } else {
+                header.classList.remove('header-shrink');
+                title.classList.remove('title-shrink');
+            }
+        });
+
+        /* ==========================================================================
+           2. i18n 國際化雙語資料字典
            ========================================================================== */
         const i18nTranslations = {
             zh_HK: {
-                menu_title: "功能模組導覽",
-                cat_core: "自然拼讀核心",
-                cat_account: "帳號與設定",
-                cat_prefs: "偏好設定",
-                nav_main: "主頁拆解引擎",
-                nav_flashcard: "智能閃卡模式",
-                nav_scramble: "聽音拼字挑戰 (Workbook)",
-                nav_extractor: "課文生字提取",
-                nav_dictionary: "核心 3000 字庫與分組",
-                nav_ipa: "44 國際音標表 (IPA Chart)",
-                nav_profile: "會員專區與雲端同步",
-                theme_default: "標準彩色",
-                theme_colorblind: "色盲輔助 (符號/底線)",
-                theme_grayscale: "電子墨水 (黑白高對比)",
-                search_placeholder: "輸入單字直接拆解...",
-                btn_decompose: "拆解",
-                recommended_label: "推薦試驗：",
-                badge_builtin: "內建標準庫",
-                badge_integrity: "音節合拼 100% 吻合",
-                def_title: "簡明英英釋義",
-                syllable_title: "Syllable Breakdown (組件分解)：",
-                syllable_tip: "🔊 點擊個別組件獨立發音",
-                legend_vowel: "1. 元音 (Vowel)",
-                legend_coda: "2. 尾音 (Coda)",
-                legend_onset: "3. 頭音 (Onset)",
-                legend_silent: "👻 靜音字母 (Magic E / Silent)",
-                steps_heading: "四步自然拼讀推進學習法 (Onset-Rime 韻部法)：",
-                btn_stop: "停止播放",
-                repeat_2x: "讀2次",
-                step1_title: "1. 認元音",
-                step1_desc: "Vowel 100% (紅字高亮)",
-                step2_title: "2. 加尾音",
-                step2_desc: "Vowel + Coda (紅+紫 韻部)",
-                step3_title: "3. 拼頭音",
-                step3_desc: "Onset 70% + 韻部 (綠+紅+紫)",
-                step4_title: "4. 全字拼音",
-                fc_heading: "智能閃卡學習模式 (Flashcards)",
-                fc_subheading: "自由挑選自訂課文清單，專注字素與音節對齊發音。",
-                subset_scope: "📁 選擇抽考清單範圍：",
-                select_all: "全選",
-                deselect_all: "全不選",
-                reset: "重設",
-                show_def: "顯示英文解釋",
-                hide_def: "隱藏英文解釋",
-                fc_play_uk: "朗讀全字 (Google UK)",
-                fc_deep_decompose: "深入拆解",
-                prev_card: "上一張",
-                next_card: "下一張",
-                shuffle_cards: "洗牌",
-                scramble_heading: "✍️ 聽音重組拼字挑戰 (Workbook)",
-                scramble_subheading: "聆聽標準發音，透過字母瓷磚、四線格手寫或鍵盤拼出單字",
-                scramble_step1: "1. 選擇題庫清單：",
-                scramble_step2: "2. 每次播放發音次數：",
-                scramble_step3: "3. 答題計時設置：",
-                scramble_step4: "4. 挑戰題數：",
-                scramble_step5: "5. 偏好輸入作答模式：",
-                mode_tiles: "點選字母",
-                mode_handwriting: "手寫畫板",
-                mode_keyboard: "鍵盤輸入",
-                btn_start_challenge: "開始聽音拼字挑戰",
-                quit_challenge: "結束",
-                scramble_audio_hint: "聽音重組 (Google UK 英式原音)",
-                click_speaker_hint: "點擊喇叭可重複聆聽",
-                hint_def: "字義提示",
-                input_mode_label: "輸入模式：",
-                spelling_area: "單字拼寫區：",
-                slot_tip: "點擊已填空格可退回 / 選中空格打字",
-                pool_tip: "點選字母依序填入：",
-                hw_tip: "✍️ 在四線格內手寫英文字母（支援長字分段書寫）：",
-                clear_canvas: "🧹 清空畫板",
-                kb_tip: "支援實體鍵盤 (A-Z)；或點擊下方虛擬按鍵：",
-                reset_question: "↺ 重填本題",
-                btn_check: "檢查答案",
-                ext_heading: "課文生字提取與字根還原",
-                ext_subheading: "貼入課文或故事內容，自動提取重點單字並還原詞根，快速分組管理。",
-                lemmatize_toggle: "🌱 自動還原字根 (played ➔ play, knives ➔ knife)",
-                btn_extract: "提取生字",
-                btn_import_subset: "匯入所選生字",
-                dict_heading: "核心字庫與分組 (Dictionary & Subsets)",
-                dict_subheading: "瀏覽 3000 核心標準詞庫，或透過下拉選單切換至你建立的課文分組。",
-                subset_view_label: "📁 分組檢視:",
-                ipa_heading: "國際音標表 (44 IPA Sounds)",
-                ipa_subheading: "結合 Vocabulary.com 原聲女音與 Google UK 音源，供底層時間切片使用。",
-                profile_heading: "👤 家長與學生會員專區",
-                profile_subheading: "跨裝置無縫同步自訂課文清單與拼字成績紀錄"
+                menu_title: "功能模組導覽", cat_core: "自然拼讀核心", cat_account: "帳號與設定", cat_prefs: "偏好設定",
+                nav_main: "主頁拆解引擎", nav_flashcard: "智能閃卡模式", nav_scramble: "聽音拼字挑戰 (Workbook)",
+                nav_extractor: "課文生字提取", nav_dictionary: "核心 3000 字庫與分組", nav_ipa: "44 國際音標表 (IPA Chart)",
+                nav_profile: "會員專區與雲端同步", theme_default: "標準彩色", theme_colorblind: "色盲輔助 (符號/底線)",
+                theme_grayscale: "電子墨水 (黑白高對比)", search_placeholder: "輸入單字直接拆解...", btn_decompose: "拆解",
+                recommended_label: "推薦試驗：", badge_builtin: "內建標準庫", badge_integrity: "音節合拼 100% 吻合",
+                def_title: "簡明英英釋義", syllable_title: "Syllable Breakdown (組件分解)：", syllable_tip: "🔊 點擊個別組件獨立發音",
+                legend_vowel: "1. 元音 (Vowel)", legend_coda: "2. 尾音 (Coda)", legend_onset: "3. 頭音 (Onset)",
+                legend_silent: "👻 靜音字母 (Magic E / Silent)", steps_heading: "四步自然拼讀推進學習法 (Onset-Rime 韻部法)：",
+                btn_stop: "停止播放", repeat_2x: "讀2次", step1_title: "1. 認元音", step1_desc: "Vowel 100% (紅字高亮)",
+                step2_title: "2. 加尾音", step2_desc: "Vowel + Coda (紅+紫 韻部)", step3_title: "3. 拼頭音",
+                step3_desc: "Onset 70% + 韻部 (綠+紅+紫)", step4_title: "4. 全字拼音", fc_heading: "智能閃卡學習模式 (Flashcards)",
+                fc_subheading: "自由挑選自訂課文清單，專注字素與音節對齊發音。", subset_scope: "📁 選擇抽考清單範圍：",
+                select_all: "全選", deselect_all: "全不選", reset: "重設", show_def: "顯示英文解釋", hide_def: "隱藏英文解釋",
+                fc_play_uk: "朗讀全字 (Google UK)", fc_deep_decompose: "深入拆解", prev_card: "上一張", next_card: "下一張",
+                shuffle_cards: "洗牌", scramble_heading: "✍️ 聽音重組拼字挑戰 (Workbook)",
+                scramble_subheading: "聆聽標準發音，透過字母瓷磚、四線格手寫或鍵盤拼出單字", scramble_step1: "1. 選擇題庫清單：",
+                scramble_step2: "2. 每次播放發音次數：", scramble_step3: "3. 答題計時設置：", scramble_step4: "4. 挑戰題數：",
+                scramble_step5: "5. 偏好輸入作答模式：", mode_tiles: "點選字母", mode_handwriting: "手寫畫板",
+                mode_keyboard: "鍵盤輸入", btn_start_challenge: "開始聽音拼字挑戰", quit_challenge: "結束",
+                scramble_audio_hint: "聽音重組 (Google UK 英式原音)", click_speaker_hint: "點擊喇叭可重複聆聽", hint_def: "字義提示",
+                input_mode_label: "輸入模式：", spelling_area: "單字拼寫區：", slot_tip: "點擊已填空格可退回 / 選中空格打字",
+                pool_tip: "點選字母依序填入：", hw_tip: "✍️ 在四線格內手寫英文字母（支援長字分段書寫）：", clear_canvas: "🧹 清空畫板",
+                kb_tip: "支援實體鍵盤 (A-Z)；或點擊下方虛擬按鍵：", reset_question: "↺ 重填本題", btn_check: "檢查答案",
+                ext_heading: "課文生字提取與字根還原", ext_subheading: "貼入課文或故事內容，自動提取重點單字並還原詞根，快速分組管理。",
+                lemmatize_toggle: "🌱 自動還原字根 (played ➔ play, knives ➔ knife)", btn_extract: "提取生字",
+                btn_import_subset: "匯入所選生字", dict_heading: "核心字庫與分組 (Dictionary & Subsets)",
+                dict_subheading: "瀏覽 3000 核心標準詞庫，或透過下拉選單切換至你建立的課文分組。", subset_view_label: "📁 分組檢視:",
+                ipa_heading: "國際音標表 (44 IPA Sounds)", ipa_subheading: "結合 Vocabulary.com 原聲女音與 Google UK 音源，供底層時間切片使用。",
+                profile_heading: "👤 家長與學生會員專區", profile_subheading: "跨裝置無縫同步自訂課文清單與拼字成績紀錄"
             },
             en: {
-                menu_title: "Module Navigation",
-                cat_core: "Phonics Core",
-                cat_account: "Account & Settings",
-                cat_prefs: "Preferences",
-                nav_main: "Decomposition Engine",
-                nav_flashcard: "Smart Flashcards",
-                nav_scramble: "Spelling Challenge (Workbook)",
-                nav_extractor: "Vocabulary Extractor",
-                nav_dictionary: "Core 3000 & Subsets",
-                nav_ipa: "44 IPA Sound Chart",
-                nav_profile: "Member Area & Sync",
-                theme_default: "Standard Color",
-                theme_colorblind: "Colorblind (Shapes/Lines)",
-                theme_grayscale: "E-ink (High Contrast B&W)",
-                search_placeholder: "Type a word to decompose...",
-                btn_decompose: "Decompose",
-                recommended_label: "Try these:",
-                badge_builtin: "Built-in Standard DB",
-                badge_integrity: "Syllable Match 100%",
-                def_title: "Concise English Definition",
-                syllable_title: "Syllable Breakdown:",
-                syllable_tip: "🔊 Click chunks to hear sound",
-                legend_vowel: "1. Vowel",
-                legend_coda: "2. Coda",
-                legend_onset: "3. Onset",
-                legend_silent: "👻 Silent Letter (Magic E)",
-                steps_heading: "4-Step Phonics Progression (Onset-Rime):",
-                btn_stop: "Stop",
-                repeat_2x: "2x",
-                step1_title: "1. Identify Vowel",
-                step1_desc: "Vowel 100% (Red Highlight)",
-                step2_title: "2. Add Coda",
-                step2_desc: "Vowel + Coda (Rime)",
-                step3_title: "3. Blend Onset",
-                step3_desc: "Onset 70% + Rime (Full)",
-                step4_title: "4. Whole Word",
-                fc_heading: "Smart Flashcards",
-                fc_subheading: "Pick reading subsets and practice grapheme-phoneme correspondence.",
-                subset_scope: "📁 Select Test Subsets:",
-                select_all: "Select All",
-                deselect_all: "Deselect All",
-                reset: "Reset",
-                show_def: "Show English Definition",
-                hide_def: "Hide English Definition",
-                fc_play_uk: "Read Full Word (Google UK)",
-                fc_deep_decompose: "Deep Decompose",
-                prev_card: "Previous",
-                next_card: "Next",
-                shuffle_cards: "Shuffle",
-                scramble_heading: "✍️ Listening Spelling Challenge (Workbook)",
-                scramble_subheading: "Listen to authentic RP audio and spell via tiles, 4-line canvas, or keyboard",
-                scramble_step1: "1. Select Question Bank:",
-                scramble_step2: "2. Audio Repeat Times:",
-                scramble_step3: "3. Timer Setting:",
-                scramble_step4: "4. Question Count:",
-                scramble_step5: "5. Preferred Input Mode:",
-                mode_tiles: "Tile Tap",
-                mode_handwriting: "Handwriting Canvas",
-                mode_keyboard: "Keyboard Input",
-                btn_start_challenge: "Start Spelling Challenge",
-                quit_challenge: "Quit",
-                scramble_audio_hint: "Sound & Spell (Google UK Audio)",
-                click_speaker_hint: "Click speaker to replay sound",
-                hint_def: "Definition Hint",
-                input_mode_label: "Input Mode:",
-                spelling_area: "Spelling Slots:",
-                slot_tip: "Click slot to retract / focus to type",
-                pool_tip: "Tap letters in order:",
-                hw_tip: "✍️ Write letters in 4-line grid (Supports segment writing):",
-                clear_canvas: "🧹 Clear Board",
-                kb_tip: "Supports keyboard (A-Z) or virtual keys below:",
-                reset_question: "↺ Reset Question",
-                btn_check: "Check Answer",
-                ext_heading: "Text Extractor & Stem Lemmatizer",
+                menu_title: "Module Navigation", cat_core: "Phonics Core", cat_account: "Account & Settings", cat_prefs: "Preferences",
+                nav_main: "Decomposition Engine", nav_flashcard: "Smart Flashcards", nav_scramble: "Spelling Challenge (Workbook)",
+                nav_extractor: "Vocabulary Extractor", nav_dictionary: "Core 3000 & Subsets", nav_ipa: "44 IPA Sound Chart",
+                nav_profile: "Member Area & Sync", theme_default: "Standard Color", theme_colorblind: "Colorblind (Shapes/Lines)",
+                theme_grayscale: "E-ink (High Contrast B&W)", search_placeholder: "Type a word to decompose...", btn_decompose: "Decompose",
+                recommended_label: "Try these:", badge_builtin: "Built-in Standard DB", badge_integrity: "Syllable Match 100%",
+                def_title: "Concise English Definition", syllable_title: "Syllable Breakdown:", syllable_tip: "🔊 Click chunks to hear sound",
+                legend_vowel: "1. Vowel", legend_coda: "2. Coda", legend_onset: "3. Onset", legend_silent: "👻 Silent Letter (Magic E)",
+                steps_heading: "4-Step Phonics Progression (Onset-Rime):", btn_stop: "Stop", repeat_2x: "2x",
+                step1_title: "1. Identify Vowel", step1_desc: "Vowel 100% (Red Highlight)", step2_title: "2. Add Coda",
+                step2_desc: "Vowel + Coda (Rime)", step3_title: "3. Blend Onset", step3_desc: "Onset 70% + Rime (Full)",
+                step4_title: "4. Whole Word", fc_heading: "Smart Flashcards", fc_subheading: "Pick reading subsets and practice grapheme-phoneme correspondence.",
+                subset_scope: "📁 Select Test Subsets:", select_all: "Select All", deselect_all: "Deselect All", reset: "Reset",
+                show_def: "Show English Definition", hide_def: "Hide English Definition", fc_play_uk: "Read Full Word (Google UK)",
+                fc_deep_decompose: "Deep Decompose", prev_card: "Previous", next_card: "Next", shuffle_cards: "Shuffle",
+                scramble_heading: "✍️ Listening Spelling Challenge (Workbook)", scramble_subheading: "Listen to authentic RP audio and spell via tiles, 4-line canvas, or keyboard",
+                scramble_step1: "1. Select Question Bank:", scramble_step2: "2. Audio Repeat Times:", scramble_step3: "3. Timer Setting:",
+                scramble_step4: "4. Question Count:", scramble_step5: "5. Preferred Input Mode:", mode_tiles: "Tile Tap",
+                mode_handwriting: "Handwriting Canvas", mode_keyboard: "Keyboard Input", btn_start_challenge: "Start Spelling Challenge",
+                quit_challenge: "Quit", scramble_audio_hint: "Sound & Spell (Google UK Audio)", click_speaker_hint: "Click speaker to replay sound",
+                hint_def: "Definition Hint", input_mode_label: "Input Mode:", spelling_area: "Spelling Slots:",
+                slot_tip: "Click slot to retract / focus to type", pool_tip: "Tap letters in order:", hw_tip: "✍️ Write letters in 4-line grid (Supports segment writing):",
+                clear_canvas: "🧹 Clear Board", kb_tip: "Supports keyboard (A-Z) or virtual keys below:", reset_question: "↺ Reset Question",
+                btn_check: "Check Answer", ext_heading: "Text Extractor & Stem Lemmatizer",
                 ext_subheading: "Paste any reading story, extract key words, and save into custom subsets.",
-                lemmatize_toggle: "🌱 Auto-lemmatize root words (played ➔ play, knives ➔ knife)",
-                btn_extract: "Extract Vocab",
-                btn_import_subset: "Import Selected",
-                dict_heading: "Core Dictionary & Subsets",
-                dict_subheading: "Browse 3,000 core words or switch between your custom chapter subsets.",
-                subset_view_label: "📁 Subset Filter:",
-                ipa_heading: "International Phonetic Alphabet (44 IPA Sounds)",
-                ipa_subheading: "Combined Vocabulary.com authentic female RP and Google UK audio slices.",
-                profile_heading: "👤 Parent & Student Member Area",
-                profile_subheading: "Seamlessly sync custom lists and exercise scores across devices"
+                lemmatize_toggle: "🌱 Auto-lemmatize root words (played ➔ play, knives ➔ knife)", btn_extract: "Extract Vocab",
+                btn_import_subset: "Import Selected", dict_heading: "Core Dictionary & Subsets",
+                dict_subheading: "Browse 3,000 core words or switch between your custom chapter subsets.", subset_view_label: "📁 Subset Filter:",
+                ipa_heading: "International Phonetic Alphabet (44 IPA Sounds)", ipa_subheading: "Combined Vocabulary.com authentic female RP and Google UK audio slices.",
+                profile_heading: "👤 Parent & Student Member Area", profile_subheading: "Seamlessly sync custom lists and exercise scores across devices"
             }
         };
 
@@ -1227,12 +934,11 @@
                     btnZh.className = "flex-1 py-1 px-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-700 border border-slate-200 hover:bg-slate-100";
                 }
             }
-
             try { localStorage.setItem('phonics_lang_pref', lang); } catch (e) {}
         }
 
         /* ==========================================================================
-           2. Accessibility (a11y) 主題切換引擎 (全域生效 + 本地記憶)
+           3. Accessibility (a11y) 主題切換引擎
            ========================================================================== */
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
@@ -1254,27 +960,13 @@
 
             try { localStorage.setItem('phonics_theme_pref', theme); } catch (e) {}
             updateSyllableDisplay(currentStepLevel);
+            if (document.getElementById('view-flashcard').classList.contains('active')) {
+                renderCurrentFlashcard();
+            }
         }
 
         /* ==========================================================================
-           Header Scroll Shrink Animation (滾動縮小動畫)
-           ========================================================================== */
-        window.addEventListener('scroll', () => {
-            const header = document.getElementById('main-header');
-            const title = document.getElementById('app-title');
-            if (window.scrollY > 15) {
-                header.classList.replace('py-2.5', 'py-1.5');
-                title.classList.replace('text-xl', 'text-lg');
-                title.classList.replace('sm:text-2xl', 'sm:text-xl');
-            } else {
-                header.classList.replace('py-1.5', 'py-2.5');
-                title.classList.replace('text-lg', 'text-xl');
-                title.classList.replace('sm:text-xl', 'sm:text-2xl');
-            }
-        });
-
-        /* ==========================================================================
-           3. 聲學切片與發音引擎 (Vocabulary.com + Google UK 原音)
+           4. 音訊切片引擎
            ========================================================================== */
         let activeSessionId = 0;
         let activeAudioElements = [];
@@ -1310,23 +1002,14 @@
                             };
 
                             const safety = setTimeout(finishAudio, 3200);
-
                             audio.onended = () => { clearTimeout(safety); finishAudio(); };
                             audio.onerror = () => { clearTimeout(safety); finishAudio(); };
-
                             const playPromise = audio.play();
                             if (playPromise !== undefined) {
-                                playPromise.then(() => {
-                                    playedSuccessfully = true;
-                                }).catch(() => {
-                                    clearTimeout(safety);
-                                    finishAudio();
-                                });
+                                playPromise.then(() => playedSuccessfully = true).catch(() => { clearTimeout(safety); finishAudio(); });
                             }
                         });
-                    } catch (e) {
-                        playedSuccessfully = false;
-                    }
+                    } catch (e) { playedSuccessfully = false; }
 
                     if (!playedSuccessfully && sessionId === activeSessionId && window.speechSynthesis) {
                         await new Promise((resTTS) => {
@@ -1337,22 +1020,16 @@
                                 const ukFemale = voices.find(v => (v.lang.includes('en-GB') || v.lang.includes('en_GB')) && (v.name.includes('Female') || v.name.includes('Google UK English Female') || v.name.includes('Victoria'))) 
                                               || voices.find(v => v.lang.includes('en-GB') || v.lang.includes('en_GB'));
                                 const u = new SpeechSynthesisUtterance(cleanWord);
-                                u.lang = 'en-GB';
-                                u.rate = 0.85;
+                                u.lang = 'en-GB'; u.rate = 0.85;
                                 if (ukFemale) u.voice = ukFemale;
-                                u.onend = resTTS;
-                                u.onerror = resTTS;
+                                u.onend = resTTS; u.onerror = resTTS;
                                 window.speechSynthesis.speak(u);
                                 setTimeout(resTTS, 2500);
-                            } catch (err) {
-                                resTTS();
-                            }
+                            } catch (err) { resTTS(); }
                         });
                     }
 
-                    if (r < repeats && sessionId === activeSessionId) {
-                        await new Promise(resWait => setTimeout(resWait, 550));
-                    }
+                    if (r < repeats && sessionId === activeSessionId) await new Promise(resWait => setTimeout(resWait, 550));
                 }
 
                 if (sessionId === activeSessionId) {
@@ -1420,12 +1097,9 @@
             sonorants: new Set(['m', 'n', 'ŋ', 'l', 'r', 'w', 'j'])
         };
 
-        const customWordDatabase = {
+        let customWordDatabase = {
             "curious": {
-                word: "curious",
-                ipa: "/ˈkjʊə.ri.əs/",
-                pos: "adjective",
-                definition: "Eager to know or learn something; strange or unusual.",
+                word: "curious", ipa: "/ˈkjʊə.ri.əs/", pos: "adjective", definition: "Eager to know or learn something; strange or unusual.",
                 example: "Babies are curious about everything around them.",
                 chunks: [
                     { letters: "cu", onsetLet: "c", vowelLet: "u", codaLet: "", onset: "kj", vowel: "ʊə", coda: null },
@@ -1434,38 +1108,15 @@
                 ]
             },
             "knowledge": {
-                word: "knowledge",
-                ipa: "/ˈnɒl.ɪdʒ/",
-                pos: "noun",
-                definition: "Facts, information, and skills acquired through experience or education.",
+                word: "knowledge", ipa: "/ˈnɒl.ɪdʒ/", pos: "noun", definition: "Facts, information, and skills acquired through experience.",
                 example: "She has a vast knowledge of European history.",
                 chunks: [
-                    {
-                        letters: "knowl",
-                        onsetLet: "n",
-                        vowelLet: "ow",
-                        codaLet: "l",
-                        onset: "n",
-                        vowel: "ɒ",
-                        coda: "l",
-                        silentTokens: [{ char: "k", note: "kn- 組合：k 不發音" }]
-                    },
-                    {
-                        letters: "edge",
-                        onsetLet: "",
-                        vowelLet: "e",
-                        codaLet: "dge",
-                        onset: null,
-                        vowel: "ɪ",
-                        coda: "dʒ"
-                    }
+                    { letters: "knowl", onsetLet: "n", vowelLet: "ow", codaLet: "l", onset: "n", vowel: "ɒ", coda: "l", silentTokens: [{ char: "k", note: "kn- 組合：k 不發音" }] },
+                    { letters: "edge", onsetLet: "", vowelLet: "e", codaLet: "dge", onset: null, vowel: "ɪ", coda: "dʒ" }
                 ]
             },
             "accompany": {
-                word: "accompany",
-                ipa: "/əˈkʌm.pə.ni/",
-                pos: "verb",
-                definition: "Go somewhere with someone as a companion or escort.",
+                word: "accompany", ipa: "/əˈkʌm.pə.ni/", pos: "verb", definition: "Go somewhere with someone as a companion or escort.",
                 example: "Children must be accompanied by an adult.",
                 chunks: [
                     { letters: "ac", onsetLet: "", vowelLet: "a", codaLet: "c", onset: null, vowel: "ə", coda: null },
@@ -1475,64 +1126,19 @@
                 ]
             },
             "space": {
-                word: "space",
-                ipa: "/speɪs/",
-                pos: "noun",
-                definition: "A continuous area or expanse which is free, available, or unoccupied.",
+                word: "space", ipa: "/speɪs/", pos: "noun", definition: "A continuous area or expanse which is free, available, or unoccupied.",
                 example: "There is plenty of space for everyone to sit.",
-                chunks: [
-                    { 
-                        letters: "space", 
-                        onsetLet: "sp", 
-                        vowelLet: "a", 
-                        codaLet: "c", 
-                        onset: "sp", 
-                        vowel: "eɪ", 
-                        coda: "s",
-                        silentTokens: [{ char: "e", note: "Magic e：結尾 e 不發音" }]
-                    }
-                ]
+                chunks: [{ letters: "space", onsetLet: "sp", vowelLet: "a", codaLet: "c", onset: "sp", vowel: "eɪ", coda: "s", silentTokens: [{ char: "e", note: "Magic e：結尾 e 不發音" }] }]
             },
             "knife": {
-                word: "knife",
-                ipa: "/naɪf/",
-                pos: "noun",
-                definition: "An instrument for cutting consisting of a blade attached to a handle.",
+                word: "knife", ipa: "/naɪf/", pos: "noun", definition: "An instrument for cutting consisting of a blade attached to a handle.",
                 example: "Use a sharp knife to cut the vegetables.",
-                chunks: [
-                    { 
-                        letters: "knife", 
-                        onsetLet: "n", 
-                        vowelLet: "i", 
-                        codaLet: "f", 
-                        onset: "n", 
-                        vowel: "aɪ", 
-                        coda: "f",
-                        silentTokens: [
-                            { char: "k", note: "kn- 組合：k 不發音" },
-                            { char: "e", note: "Magic e：結尾 e 不發音" }
-                        ]
-                    }
-                ]
+                chunks: [{ letters: "knife", onsetLet: "n", vowelLet: "i", codaLet: "f", onset: "n", vowel: "aɪ", coda: "f", silentTokens: [{ char: "k", note: "kn- 組合：k 不發音" }, { char: "e", note: "Magic e：結尾 e 不發音" }] }]
             },
             "climb": {
-                word: "climb",
-                ipa: "/klaɪm/",
-                pos: "verb",
-                definition: "Go or come up a slope or incline.",
+                word: "climb", ipa: "/klaɪm/", pos: "verb", definition: "Go or come up a slope or incline.",
                 example: "They climbed to the top of the mountain.",
-                chunks: [
-                    {
-                        letters: "climb",
-                        onsetLet: "cl",
-                        vowelLet: "i",
-                        codaLet: "m",
-                        onset: "kl",
-                        vowel: "aɪ",
-                        coda: "m",
-                        silentTokens: [{ char: "b", note: "-mb 結尾：b 不發音" }]
-                    }
-                ]
+                chunks: [{ letters: "climb", onsetLet: "cl", vowelLet: "i", codaLet: "m", onset: "kl", vowel: "aɪ", coda: "m", silentTokens: [{ char: "b", note: "-mb 結尾：b 不發音" }] }]
             }
         };
 
@@ -1570,13 +1176,8 @@
                 const audio = new Audio(url);
                 audio.preload = "auto";
                 const done = () => resolve(audio);
-                if (audio.readyState >= 2) {
-                    resolve(audio);
-                } else {
-                    audio.onloadeddata = done;
-                    audio.onerror = () => resolve(null);
-                    setTimeout(done, 500);
-                }
+                if (audio.readyState >= 2) resolve(audio);
+                else { audio.onloadeddata = done; audio.onerror = () => resolve(null); setTimeout(done, 500); }
             });
         }
 
@@ -1584,8 +1185,7 @@
             return new Promise((resolve) => {
                 if (!audio || sessionId !== activeSessionId) {
                     if (onOverlapReady) onOverlapReady();
-                    resolve();
-                    return;
+                    resolve(); return;
                 }
 
                 let finished = false;
@@ -1594,10 +1194,7 @@
                 const finish = () => {
                     if (finished) return;
                     finished = true;
-                    try {
-                        audio.pause();
-                        audio.currentTime = 0;
-                    } catch(e){}
+                    try { audio.pause(); audio.currentTime = 0; } catch(e){}
                     const idx = activeAudioElements.indexOf(audio);
                     if (idx !== -1) activeAudioElements.splice(idx, 1);
                     resolve();
@@ -1621,41 +1218,28 @@
                     const overlapMs = range.overlapMs || 0;
                     const triggerNextAtMs = Math.max(30, sliceMs - overlapMs);
 
-                    try {
-                        if (startSec > 0) audio.currentTime = startSec;
-                    } catch(e){}
+                    try { if (startSec > 0) audio.currentTime = startSec; } catch(e){}
 
                     audio.onplaying = () => {
                         let overlapTriggered = false;
                         const overlapTimer = setTimeout(() => {
                             if (!overlapTriggered && onOverlapReady && sessionId === activeSessionId) {
-                                overlapTriggered = true;
-                                onOverlapReady();
+                                overlapTriggered = true; onOverlapReady();
                             }
-                            if (overlapMs > 0) {
-                                fadeVolume(audio, 1.0, 0.0, overlapMs);
-                            }
+                            if (overlapMs > 0) fadeVolume(audio, 1.0, 0.0, overlapMs);
                         }, triggerNextAtMs);
 
                         setTimeout(() => {
-                            clearTimeout(safetyTimer);
-                            clearTimeout(overlapTimer);
-                            if (!overlapTriggered && onOverlapReady) {
-                                onOverlapReady();
-                            }
+                            clearTimeout(safetyTimer); clearTimeout(overlapTimer);
+                            if (!overlapTriggered && onOverlapReady) onOverlapReady();
                             finish();
                         }, sliceMs);
                     };
-
                     audio.play().catch(finish);
                 };
 
-                if (audio.readyState >= 2) {
-                    execute();
-                } else {
-                    audio.onloadeddata = execute;
-                    audio.onerror = finish;
-                }
+                if (audio.readyState >= 2) execute();
+                else { audio.onloadeddata = execute; audio.onerror = finish; }
             });
         }
 
@@ -1668,8 +1252,7 @@
             const interval = setInterval(() => {
                 current += delta;
                 if ((delta < 0 && current <= to) || (delta > 0 && current >= to)) {
-                    audio.volume = Math.max(0, Math.min(1, to));
-                    clearInterval(interval);
+                    audio.volume = Math.max(0, Math.min(1, to)); clearInterval(interval);
                 } else {
                     audio.volume = Math.max(0, Math.min(1, current));
                 }
@@ -1683,11 +1266,9 @@
             let rem = symbol;
             while (rem.length > 0) {
                 if (rem.startsWith('tʃ') || rem.startsWith('dʒ')) {
-                    list.push(rem.slice(0, 2));
-                    rem = rem.slice(2);
+                    list.push(rem.slice(0, 2)); rem = rem.slice(2);
                 } else {
-                    list.push(rem[0]);
-                    rem = rem.slice(1);
+                    list.push(rem[0]); rem = rem.slice(1);
                 }
             }
             return list;
@@ -1698,32 +1279,23 @@
             const items = [];
             
             if (step === 1) {
-                if (chunk.vowel && ipaAudioMap[chunk.vowel]) {
-                    items.push({ symbol: chunk.vowel, role: 'vowel', range: getDynamicSliceRange(chunk.vowel, 'vowel', fastBlend) });
-                }
+                if (chunk.vowel && ipaAudioMap[chunk.vowel]) items.push({ symbol: chunk.vowel, role: 'vowel', range: getDynamicSliceRange(chunk.vowel, 'vowel', fastBlend) });
             } else if (step === 2) {
-                if (chunk.vowel && ipaAudioMap[chunk.vowel]) {
-                    items.push({ symbol: chunk.vowel, role: 'vowel', range: getDynamicSliceRange(chunk.vowel, 'vowel', fastBlend) });
-                }
+                if (chunk.vowel && ipaAudioMap[chunk.vowel]) items.push({ symbol: chunk.vowel, role: 'vowel', range: getDynamicSliceRange(chunk.vowel, 'vowel', fastBlend) });
                 if (chunk.coda) {
-                    const codas = decomposeCluster(chunk.coda);
-                    codas.forEach(sym => {
+                    decomposeCluster(chunk.coda).forEach(sym => {
                         if (ipaAudioMap[sym]) items.push({ symbol: sym, role: 'coda', range: getDynamicSliceRange(sym, 'coda', fastBlend) });
                     });
                 }
             } else if (step === 3) {
                 if (chunk.onset) {
-                    const onsets = decomposeCluster(chunk.onset);
-                    onsets.forEach(sym => {
+                    decomposeCluster(chunk.onset).forEach(sym => {
                         if (ipaAudioMap[sym]) items.push({ symbol: sym, role: 'onset', range: getDynamicSliceRange(sym, 'onset', fastBlend) });
                     });
                 }
-                if (chunk.vowel && ipaAudioMap[chunk.vowel]) {
-                    items.push({ symbol: chunk.vowel, role: 'vowel', range: getDynamicSliceRange(chunk.vowel, 'vowel', fastBlend) });
-                }
+                if (chunk.vowel && ipaAudioMap[chunk.vowel]) items.push({ symbol: chunk.vowel, role: 'vowel', range: getDynamicSliceRange(chunk.vowel, 'vowel', fastBlend) });
                 if (chunk.coda) {
-                    const codas = decomposeCluster(chunk.coda);
-                    codas.forEach(sym => {
+                    decomposeCluster(chunk.coda).forEach(sym => {
                         if (ipaAudioMap[sym]) items.push({ symbol: sym, role: 'coda', range: getDynamicSliceRange(sym, 'coda', fastBlend) });
                     });
                 }
@@ -1742,20 +1314,9 @@
 
                 await new Promise((resolveNext) => {
                     let nextProceeded = false;
-                    const triggerNext = () => {
-                        if (!nextProceeded) {
-                            nextProceeded = true;
-                            resolveNext();
-                        }
-                    };
-
+                    const triggerNext = () => { if (!nextProceeded) { nextProceeded = true; resolveNext(); } };
                     playSmoothSlice(audio, it.range, sessionId, (i < items.length - 1) ? triggerNext : null)
-                        .then(() => {
-                            if (!nextProceeded) {
-                                nextProceeded = true;
-                                resolveNext();
-                            }
-                        });
+                        .then(() => { if (!nextProceeded) { nextProceeded = true; resolveNext(); } });
                 });
             }
         }
@@ -1769,11 +1330,7 @@
             const stepBtn = document.getElementById(`step-btn-${step}`);
             if (stepBtn) stepBtn.classList.add('playing');
 
-            const stepNames = { 
-                1: "認元音 (Vowel 100%)", 
-                2: "加尾音 (Vowel + Coda 50% 韻部)", 
-                3: "拼頭音 (Onset 70% + 韻部全拼)" 
-            };
+            const stepNames = { 1: "認元音 (Vowel 100%)", 2: "加尾音 (Vowel + Coda 50% 韻部)", 3: "拼頭音 (Onset 70% + 韻部全拼)" };
             let chunkInterval = (step === 2) ? 480 : (step === 3 ? 560 : 380);
 
             for (let round = 1; round <= 2; round++) {
@@ -1790,15 +1347,9 @@
                     await playStepAudioForChunk(chunk, step, currentSession);
 
                     if (chunkCard) chunkCard.classList.remove('playing');
-
-                    if (i < currentAnalysis.chunks.length - 1) {
-                        await new Promise(r => setTimeout(r, chunkInterval));
-                    }
+                    if (i < currentAnalysis.chunks.length - 1) await new Promise(r => setTimeout(r, chunkInterval));
                 }
-
-                if (round === 1) {
-                    await new Promise(r => setTimeout(r, 700));
-                }
+                if (round === 1) await new Promise(r => setTimeout(r, 700));
             }
 
             if (currentSession === activeSessionId) {
@@ -1813,20 +1364,15 @@
             const word = document.getElementById('display-word').innerText;
             const stepBtn = document.getElementById('step-btn-4');
             if (stepBtn) stepBtn.classList.add('playing');
-
             playWholeWordAudioUK(word, 2, currentSession);
         }
 
         function triggerStep(step) {
             updateSyllableDisplay(step);
-            if (step >= 1 && step <= 3) {
-                runAudioStepSequence(step);
-            } else if (step === 4) {
-                triggerStep4TTS();
-            }
+            if (step >= 1 && step <= 3) runAudioStepSequence(step);
+            else if (step === 4) triggerStep4TTS();
         }
 
-        // 精準的字素對應映射，杜絕字母與音標混用導致的錯位與 klclib Bug
         function parseChunkTokens(chunk, chunkIdx, totalChunks, fullWord) {
             const rawLetters = chunk.letters || "";
             const tokens = [];
@@ -1837,18 +1383,13 @@
                 chunk.silentTokens.forEach(st => explicitSilentMap.set(st.char.toLowerCase(), st.note));
             }
 
-            let silentPrefix = "";
-            let silentPrefixNote = "";
+            let silentPrefix = ""; let silentPrefixNote = "";
             if (chunkIdx === 0) {
-                if (lower.startsWith("kn") && (!chunk.onset || !chunk.onset.startsWith("k"))) {
-                    silentPrefix = "k"; silentPrefixNote = "kn- 組合：k 不發音";
-                } else if (lower.startsWith("wr") && (!chunk.onset || !chunk.onset.startsWith("w"))) {
-                    silentPrefix = "w"; silentPrefixNote = "wr- 組合：w 不發音";
-                }
+                if (lower.startsWith("kn") && (!chunk.onset || !chunk.onset.startsWith("k"))) { silentPrefix = "k"; silentPrefixNote = "kn- 組合：k 不發音"; }
+                else if (lower.startsWith("wr") && (!chunk.onset || !chunk.onset.startsWith("w"))) { silentPrefix = "w"; silentPrefixNote = "wr- 組合：w 不發音"; }
             }
 
-            let silentSuffix = "";
-            let silentSuffixNote = "";
+            let silentSuffix = ""; let silentSuffixNote = "";
             if (chunkIdx === totalChunks - 1 || totalChunks === 1) {
                 if (lower.endsWith("e") && !chunk.vowelLet?.toLowerCase().endsWith("e") && chunk.vowel !== "i" && chunk.vowel !== "iː" && chunk.vowel !== "e") {
                     silentSuffix = "e"; silentSuffixNote = "Magic e：結尾 e 不發音";
@@ -1858,7 +1399,6 @@
             }
 
             let rem = rawLetters;
-
             if (silentPrefix && rem.toLowerCase().startsWith(silentPrefix)) {
                 tokens.push({ char: rem.slice(0, silentPrefix.length), type: "silent", note: silentPrefixNote });
                 rem = rem.slice(silentPrefix.length);
@@ -1879,35 +1419,20 @@
                     tokens.push({ char: suffixPart, type: "silent", note: silentSuffixNote });
                 } else {
                     for (let c of rem) {
-                        if (explicitSilentMap.has(c.toLowerCase())) {
-                            tokens.push({ char: c, type: "silent", note: explicitSilentMap.get(c.toLowerCase()) });
-                        } else {
-                            tokens.push({ char: c, type: "coda" });
-                        }
+                        if (explicitSilentMap.has(c.toLowerCase())) tokens.push({ char: c, type: "silent", note: explicitSilentMap.get(c.toLowerCase()) });
+                        else tokens.push({ char: c, type: "coda" });
                     }
                 }
             }
-
             return tokens;
         }
 
         function renderTokensToHTML(tokens, step = 0) {
             return tokens.map(token => {
-                if (token.type === 'silent') {
-                    return `<span class="phonics-token phonics-silent mx-[0.5px] cursor-help" title="👻 靜音字母：${token.note || '此字母不發音'}">${token.char}</span>`;
-                }
-                if (token.type === 'vowel') {
-                    const isActive = (step >= 1);
-                    return `<span class="phonics-token phonics-vowel ${isActive ? 'is-active' : ''}">${token.char}</span>`;
-                }
-                if (token.type === 'coda') {
-                    const isActive = (step >= 2);
-                    return `<span class="phonics-token phonics-coda ${isActive ? 'is-active' : ''}">${token.char}</span>`;
-                }
-                if (token.type === 'onset') {
-                    const isActive = (step >= 3);
-                    return `<span class="phonics-token phonics-onset ${isActive ? 'is-active' : ''}">${token.char}</span>`;
-                }
+                if (token.type === 'silent') return `<span class="phonics-token phonics-silent mx-[0.5px] cursor-help" title="👻 靜音字母：${token.note || '此字母不發音'}">${token.char}</span>`;
+                if (token.type === 'vowel') return `<span class="phonics-token phonics-vowel ${step >= 1 ? 'is-active' : ''}">${token.char}</span>`;
+                if (token.type === 'coda') return `<span class="phonics-token phonics-coda ${step >= 2 ? 'is-active' : ''}">${token.char}</span>`;
+                if (token.type === 'onset') return `<span class="phonics-token phonics-onset ${step >= 3 ? 'is-active' : ''}">${token.char}</span>`;
                 return `<span>${token.char}</span>`;
             }).join('');
         }
@@ -1968,110 +1493,44 @@
             if (!currentAnalysis || !currentAnalysis.chunks[chunkIdx]) return;
             const chunk = currentAnalysis.chunks[chunkIdx];
 
-            updateSyllableDisplay(3);
+            // 若在主頁則更新主頁 UI
+            if (document.getElementById('view-main').classList.contains('active')) {
+                updateSyllableDisplay(3);
+                const card = document.getElementById(`chunk-card-${chunkIdx}`);
+                if (card) card.classList.add('playing');
+                updateStatus(`正在發音音節: ${chunk.letters} [第 1 次 - 拆解拼讀]`, true);
+            }
+            
+            // 若在閃卡頁則更新閃卡 UI
+            if (document.getElementById('view-flashcard').classList.contains('active')) {
+                const fcCard = document.getElementById(`fc-chunk-${chunkIdx}`);
+                if (fcCard) fcCard.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+            }
 
-            const card = document.getElementById(`chunk-card-${chunkIdx}`);
-            if (card) card.classList.add('playing');
-
-            updateStatus(`正在發音音節: ${chunk.letters} [第 1 次 - 拆解拼讀]`, true);
             await playStepAudioForChunk(chunk, 3, currentSession, false);
-
             if (currentSession !== activeSessionId) return;
 
             await new Promise(r => setTimeout(r, 750));
             if (currentSession !== activeSessionId) return;
 
-            updateStatus(`正在發音音節: ${chunk.letters} [第 2 次 - 零停頓連讀]`, true);
+            if (document.getElementById('view-main').classList.contains('active')) {
+                updateStatus(`正在發音音節: ${chunk.letters} [第 2 次 - 零停頓連讀]`, true);
+            }
+
             await playStepAudioForChunk(chunk, 3, currentSession, true);
 
             if (currentSession === activeSessionId) {
-                if (card) card.classList.remove('playing');
-                updateStatus('Ready');
+                if (document.getElementById('view-main').classList.contains('active')) {
+                    const card = document.getElementById(`chunk-card-${chunkIdx}`);
+                    if (card) card.classList.remove('playing');
+                    updateStatus('Ready');
+                }
+                if (document.getElementById('view-flashcard').classList.contains('active')) {
+                    const fcCard = document.getElementById(`fc-chunk-${chunkIdx}`);
+                    if (fcCard) fcCard.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+                }
             }
         }
-
-        const ipaChartDataset = {
-            vowels: [
-                { sym: 'iː', word: 'bean', audio: ipaAudioMap['iː'], src: 'Vocab' },
-                { sym: 'ɪ', word: 'tip', audio: ipaAudioMap['ɪ'], src: 'Vocab' },
-                { sym: 'ʊ', word: 'shook', audio: ipaAudioMap['ʊ'], src: 'Vocab' },
-                { sym: 'uː', word: 'moon', audio: ipaAudioMap['uː'], src: 'Vocab' },
-                { sym: 'e', word: 'met', audio: ipaAudioMap['e'], src: 'Google UK' },
-                { sym: 'ə', word: 'the', audio: ipaAudioMap['ə'], src: 'Vocab' },
-                { sym: 'ɜː', word: 'sir', audio: ipaAudioMap['ɜː'], src: 'Google UK' },
-                { sym: 'ɔː', word: 'shore', audio: ipaAudioMap['ɔː'], src: 'Vocab' },
-                { sym: 'æ', word: 'pan', audio: ipaAudioMap['æ'], src: 'Vocab' },
-                { sym: 'ʌ', word: 'fun', audio: ipaAudioMap['ʌ'], src: 'Google UK' },
-                { sym: 'ɑː', word: 'card', audio: ipaAudioMap['ɑː'], src: 'Vocab' },
-                { sym: 'ɒ', word: 'lock', audio: ipaAudioMap['ɒ'], src: 'Google UK' }
-            ],
-            diphthongs: [
-                { sym: 'ɪə', word: 'dear', audio: ipaAudioMap['ɪə'], src: 'Google UK' },
-                { sym: 'eɪ', word: 'same', audio: ipaAudioMap['eɪ'], src: 'Vocab' },
-                { sym: 'ʊə', word: 'cure', audio: ipaAudioMap['ʊə'], src: 'Google UK' },
-                { sym: 'ɔɪ', word: 'choice', audio: ipaAudioMap['ɔɪ'], src: 'Vocab' },
-                { sym: 'əʊ', word: 'go', audio: ipaAudioMap['əʊ'], src: 'Google UK' },
-                { sym: 'eə', word: 'hair', audio: ipaAudioMap['eə'], src: 'Google UK' },
-                { sym: 'aɪ', word: 'hide', audio: ipaAudioMap['aɪ'], src: 'Vocab' },
-                { sym: 'aʊ', word: 'loud', audio: ipaAudioMap['aʊ'], src: 'Vocab' }
-            ],
-            consonants: [
-                { sym: 'p', word: 'pick', audio: ipaAudioMap['p'], src: 'Vocab' },
-                { sym: 'b', word: 'bed', audio: ipaAudioMap['b'], src: 'Vocab' },
-                { sym: 't', word: 'team', audio: ipaAudioMap['t'], src: 'Vocab' },
-                { sym: 'd', word: 'dine', audio: ipaAudioMap['d'], src: 'Vocab' },
-                { sym: 'k', word: 'code', audio: ipaAudioMap['k'], src: 'Vocab' },
-                { sym: 'g', word: 'get', audio: ipaAudioMap['g'], src: 'Vocab' },
-                { sym: 'tʃ', word: 'choose', audio: ipaAudioMap['tʃ'], src: 'Vocab' },
-                { sym: 'dʒ', word: 'jet', audio: ipaAudioMap['dʒ'], src: 'Vocab' },
-                { sym: 'f', word: 'first', audio: ipaAudioMap['f'], src: 'Vocab' },
-                { sym: 'v', word: 'van', audio: ipaAudioMap['v'], src: 'Vocab' },
-                { sym: 'θ', word: 'thick', audio: ipaAudioMap['θ'], src: 'Vocab' },
-                { sym: 'ð', word: 'these', audio: ipaAudioMap['ð'], src: 'Vocab' },
-                { sym: 's', word: 'saw', audio: ipaAudioMap['s'], src: 'Vocab' },
-                { sym: 'z', word: 'zen', audio: ipaAudioMap['z'], src: 'Vocab' },
-                { sym: 'ʃ', word: 'she', audio: ipaAudioMap['ʃ'], src: 'Vocab' },
-                { sym: 'ʒ', word: 'casual', audio: ipaAudioMap['ʒ'], src: 'Vocab' },
-                { sym: 'm', word: 'mode', audio: ipaAudioMap['m'], src: 'Vocab' },
-                { sym: 'n', word: 'neck', audio: ipaAudioMap['n'], src: 'Vocab' },
-                { sym: 'ŋ', word: 'song', audio: ipaAudioMap['ŋ'], src: 'Vocab' },
-                { sym: 'h', word: 'hard', audio: ipaAudioMap['h'], src: 'Vocab' },
-                { sym: 'w', word: 'watch', audio: ipaAudioMap['w'], src: 'Vocab' },
-                { sym: 'j', word: 'yet', audio: ipaAudioMap['j'], src: 'Vocab' },
-                { sym: 'r', word: 'rug', audio: ipaAudioMap['r'], src: 'Vocab' },
-                { sym: 'l', word: 'look', audio: ipaAudioMap['l'], src: 'Vocab' }
-            ]
-        };
-
-        function renderIPAChart() {
-            const makeCard = (item, theme) => {
-                const badgeStyle = item.src === 'Google UK' ? 'bg-emerald-600' : 'bg-slate-700';
-                return `
-                    <div onclick="playSingleAudioUrl('${item.audio}')" class="relative bg-white border-2 border-slate-200 hover:border-${theme}-400 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-sm group">
-                        <div class="absolute -top-1.5 -right-1.5 text-[8px] font-black text-white px-1.5 py-0.5 rounded shadow-2xs ${badgeStyle}">${item.src}</div>
-                        <div class="text-2xl font-black text-${theme}-600 mb-0.5 group-hover:scale-110 transition-transform">${item.sym}</div>
-                        <div class="text-[11px] font-bold text-slate-400">${item.word}</div>
-                    </div>
-                `;
-            };
-            document.getElementById('grid-vowels').innerHTML = ipaChartDataset.vowels.map(i => makeCard(i, 'red')).join('');
-            document.getElementById('grid-diphthongs').innerHTML = ipaChartDataset.diphthongs.map(i => makeCard(i, 'orange')).join('');
-            document.getElementById('grid-consonants').innerHTML = ipaChartDataset.consonants.map(i => makeCard(i, 'blue')).join('');
-        }
-
-        function playSingleAudioUrl(url) {
-            stopAllPlayback();
-            const a = new Audio(url);
-            a.play().catch(e => console.warn(e));
-        }
-
-        const validOnsetClusters = [
-            "bl", "cl", "fl", "gl", "pl", "sl",
-            "br", "cr", "dr", "fr", "gr", "pr", "tr",
-            "sc", "sk", "sm", "sn", "sp", "st", "sw",
-            "spl", "spr", "str", "scr", "skr", "squ",
-            "ch", "sh", "th", "ph", "wh"
-        ];
 
         function decomposeWordAutomatically(rawWord) {
             const word = rawWord.toLowerCase().trim();
@@ -2094,15 +1553,13 @@
                 const consonantsBetween = word.slice(nuclei[i].end, nuclei[i + 1].start);
                 let splitPoint = nuclei[i].end;
 
-                if (consonantsBetween.length <= 1) {
-                    splitPoint = nuclei[i].end;
-                } else {
+                if (consonantsBetween.length <= 1) splitPoint = nuclei[i].end;
+                else {
                     let matchedCluster = false;
-                    for (const cluster of validOnsetClusters) {
+                    for (const cluster of ["bl", "cl", "fl", "gl", "pl", "sl", "br", "cr", "dr", "fr", "gr", "pr", "tr", "sc", "sk", "sm", "sn", "sp", "st", "sw", "spl", "spr", "str", "scr", "skr", "squ", "ch", "sh", "th", "ph", "wh"]) {
                         if (consonantsBetween.endsWith(cluster)) {
                             splitPoint = nuclei[i].end + (consonantsBetween.length - cluster.length);
-                            matchedCluster = true;
-                            break;
+                            matchedCluster = true; break;
                         }
                     }
                     if (!matchedCluster) splitPoint = nuclei[i].end + 1;
@@ -2119,36 +1576,22 @@
             const chunks = syllables.map((syl, idx) => {
                 let onsetLet = "", vowelLet = syl, codaLet = "";
                 const m = syl.match(/^([^aeiouy]*)([aeiouy]+(?:[aeiouy]+)?)(.*)$/i);
-                if (m) {
-                    onsetLet = m[1];
-                    vowelLet = m[2];
-                    codaLet = m[3];
-                }
+                if (m) { onsetLet = m[1]; vowelLet = m[2]; codaLet = m[3]; }
                 return mapPhonicsParts(syl, onsetLet, vowelLet, codaLet, idx, syllables.length);
             });
 
-            return {
-                word: word,
-                ipa: "/" + chunks.map(c => (c.onset || '') + c.vowel + (c.coda || '')).join(".") + "/",
-                chunks: chunks
-            };
+            return { word: word, ipa: "/" + chunks.map(c => (c.onset || '') + c.vowel + (c.coda || '')).join(".") + "/", chunks: chunks };
         }
 
         function createSingleChunkResult(word, onsetLet, vowelLet, codaLet) {
             const chunk = mapPhonicsParts(word, onsetLet, vowelLet, codaLet, 0, 1);
-            return {
-                word: word,
-                ipa: `/${(chunk.onset || '')}${chunk.vowel}${(chunk.coda || '')}/`,
-                chunks: [chunk]
-            };
+            return { word: word, ipa: `/${(chunk.onset || '')}${chunk.vowel}${(chunk.coda || '')}/`, chunks: [chunk] };
         }
 
         function mapPhonicsParts(syl, onsetLet, vowelLet, codaLet, idx, totalSyls) {
             let onset = null, vowel = "æ", coda = null;
 
-            if (syl.includes("tion")) {
-                return { letters: syl, onsetLet: "t", vowelLet: "io", codaLet: "n", onset: "ʃ", vowel: "ə", coda: "n" };
-            }
+            if (syl.includes("tion")) return { letters: syl, onsetLet: "t", vowelLet: "io", codaLet: "n", onset: "ʃ", vowel: "ə", coda: "n" };
 
             if (/aw|au/i.test(vowelLet)) vowel = "ɔː";
             else if (/ee|ea/i.test(vowelLet)) vowel = "iː";
@@ -2167,17 +1610,8 @@
             else if (/u/i.test(vowelLet)) vowel = "ʌ";
             else if (/y/i.test(vowelLet)) vowel = (idx === totalSyls - 1) ? "i" : "aɪ";
 
-            if (onsetLet.length > 0) {
-                onset = onsetLet.toLowerCase()
-                    .replace(/sh/g, 'ʃ').replace(/ch/g, 'tʃ').replace(/th/g, 'θ').replace(/ph/g, 'f')
-                    .replace(/c(?=[eiy])/g, 's').replace(/c/g, 'k').replace(/qu/g, 'kw');
-            }
-
-            if (codaLet.length > 0) {
-                coda = codaLet.toLowerCase()
-                    .replace(/sh/g, 'ʃ').replace(/ch/g, 'tʃ').replace(/th/g, 'θ').replace(/ck/g, 'k')
-                    .replace(/ng/g, 'ŋ').replace(/c/g, 'k');
-            }
+            if (onsetLet.length > 0) onset = onsetLet.toLowerCase().replace(/sh/g, 'ʃ').replace(/ch/g, 'tʃ').replace(/th/g, 'θ').replace(/ph/g, 'f').replace(/c(?=[eiy])/g, 's').replace(/c/g, 'k').replace(/qu/g, 'kw');
+            if (codaLet.length > 0) coda = codaLet.toLowerCase().replace(/sh/g, 'ʃ').replace(/ch/g, 'tʃ').replace(/th/g, 'θ').replace(/ck/g, 'k').replace(/ng/g, 'ŋ').replace(/c/g, 'k');
 
             return { letters: syl, onsetLet, vowelLet, codaLet, onset, vowel, coda };
         }
@@ -2193,9 +1627,7 @@
                 vowelMatches.push({ vowel: vm[0], start: vm.index, end: vm.index + vm[0].length });
             }
 
-            if (vowelMatches.length <= 1) {
-                return alignSingleSyllable(rawWord, targetIpa, vowelMatches[0], ipaStr);
-            }
+            if (vowelMatches.length <= 1) return alignSingleSyllable(rawWord, targetIpa, vowelMatches[0], ipaStr);
 
             const ipaSlices = [];
             let prevCutIdx = 0;
@@ -2207,13 +1639,11 @@
 
                 let cutOffset = -1;
                 const markMatch = interSegment.match(/[\.ˈˌ']/);
-                if (markMatch && markMatch.index !== undefined) {
-                    cutOffset = curV.end + markMatch.index;
-                } else {
+                if (markMatch && markMatch.index !== undefined) cutOffset = curV.end + markMatch.index;
+                else {
                     const consonants = interSegment.replace(/[\s]/g, '');
                     cutOffset = (consonants.length <= 1) ? curV.end : curV.end + 1;
                 }
-
                 ipaSlices.push(ipaStr.substring(prevCutIdx, cutOffset));
                 prevCutIdx = cutOffset;
             }
@@ -2237,28 +1667,12 @@
                 let onsetLet = "", vowelLet = sylLetters, codaLet = "";
 
                 const m = sylLetters.match(/^([^aeiouy]*)([aeiouy]+(?:[aeiouy]+)?)(.*)$/i);
-                if (m) {
-                    onsetLet = m[1];
-                    vowelLet = m[2];
-                    codaLet = m[3];
-                }
+                if (m) { onsetLet = m[1]; vowelLet = m[2]; codaLet = m[3]; }
 
-                return {
-                    letters: sylLetters,
-                    onsetLet,
-                    vowelLet,
-                    codaLet,
-                    onset: c.onset,
-                    vowel: c.vowel,
-                    coda: c.coda
-                };
+                return { letters: sylLetters, onsetLet, vowelLet, codaLet, onset: c.onset, vowel: c.vowel, coda: c.coda };
             });
 
-            return {
-                word: rawWord,
-                ipa: targetIpa,
-                chunks: chunks
-            };
+            return { word: rawWord, ipa: targetIpa, chunks: chunks };
         }
 
         function alignLettersToIpaChunks(word, parsedIpaChunks) {
@@ -2295,52 +1709,29 @@
             let onsetLet = "", vowelLet = word, codaLet = "";
             const silentTokens = [];
 
-            if (word.startsWith("kn") && cOnset === "n") {
-                silentTokens.push({ char: "k", note: "kn- 組合：k 不發音" });
-                onsetLet = "n";
-            } else if (word.startsWith("wr") && cOnset === "r") {
-                silentTokens.push({ char: "w", note: "wr- 組合：w 不發音" });
-                onsetLet = "r";
-            } else {
-                const mOnset = word.match(/^([^aeiouy]+)/i);
-                if (mOnset && cOnset) onsetLet = mOnset[1];
-            }
+            if (word.startsWith("kn") && cOnset === "n") { silentTokens.push({ char: "k", note: "kn- 組合：k 不發音" }); onsetLet = "n"; }
+            else if (word.startsWith("wr") && cOnset === "r") { silentTokens.push({ char: "w", note: "wr- 組合：w 不發音" }); onsetLet = "r"; }
+            else { const mOnset = word.match(/^([^aeiouy]+)/i); if (mOnset && cOnset) onsetLet = mOnset[1]; }
 
             const searchPart = word.slice(onsetLet.length);
             const magicEMatch = searchPart.match(/^([aeiouy])([^aeiouy]+)(e)$/i);
             if (magicEMatch) {
-                vowelLet = magicEMatch[1];
-                codaLet = magicEMatch[2];
-                silentTokens.push({ char: "e", note: "Magic e：結尾 e 不發音" });
+                vowelLet = magicEMatch[1]; codaLet = magicEMatch[2]; silentTokens.push({ char: "e", note: "Magic e：結尾 e 不發音" });
             } else {
                 const rem = word.slice(onsetLet.length);
                 const vMatch = rem.match(/^([aeiouy]+)(.*)$/i);
-                if (vMatch) {
-                    vowelLet = vMatch[1];
-                    codaLet = vMatch[2];
-                }
+                if (vMatch) { vowelLet = vMatch[1]; codaLet = vMatch[2]; }
             }
 
             return {
-                word: rawWord,
-                ipa: targetIpa,
-                chunks: [{
-                    letters: word,
-                    onsetLet,
-                    vowelLet,
-                    codaLet,
-                    onset: cOnset,
-                    vowel: cVowel,
-                    coda: cCoda,
-                    silentTokens
-                }]
+                word: rawWord, ipa: targetIpa,
+                chunks: [{ letters: word, onsetLet, vowelLet, codaLet, onset: cOnset, vowel: cVowel, coda: cCoda, silentTokens }]
             };
         }
 
         function verifyAndReconcileSyllables(analysis) {
             const integrityBadge = document.getElementById('ipa-integrity-badge');
             if (!integrityBadge || !analysis || !analysis.chunks || !analysis.ipa) return;
-
             const isEn = (currentLang === 'en');
             integrityBadge.className = "text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border shadow-2xs flex items-center gap-1 bg-emerald-50 text-emerald-700 border-emerald-200";
             integrityBadge.innerHTML = `<span>✓</span> <span>${isEn ? 'Syllable Match 100%' : '音節合拼 100% 吻合'}</span>`;
@@ -2352,13 +1743,13 @@
             const exampleBox = document.getElementById('def-example-box');
             const sourceInd = document.getElementById('def-source-indicator');
 
+            // 1. 優先使用本機內建字典 (如有定義)
             if (customWordDatabase[word] && customWordDatabase[word].definition) {
-                const entry = customWordDatabase[word];
-                if (posBadge) posBadge.innerText = entry.pos || 'word';
-                if (defText) defText.innerText = entry.definition;
+                if (posBadge) posBadge.innerText = customWordDatabase[word].pos || 'word';
+                if (defText) defText.innerText = customWordDatabase[word].definition;
                 if (exampleBox) {
-                    exampleBox.innerText = entry.example ? `Example: "${entry.example}"` : '';
-                    exampleBox.classList.toggle('hidden', !entry.example);
+                    exampleBox.innerText = customWordDatabase[word].example ? `Example: "${customWordDatabase[word].example}"` : '';
+                    exampleBox.classList.toggle('hidden', !customWordDatabase[word].example);
                 }
                 if (sourceInd) sourceInd.innerText = 'Built-in Lexicon';
                 return;
@@ -2366,8 +1757,14 @@
 
             if (defText) defText.innerHTML = '<span class="text-slate-400 italic">正在檢索英文解釋...</span>';
 
+            // 2. 查不到內建，呼叫官方字典 API，並加入 4 秒超時防卡死
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+
             try {
-                let res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+                let res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data[0] && data[0].meanings && data[0].meanings.length > 0) {
@@ -2384,13 +1781,17 @@
                             exampleBox.classList.toggle('hidden', !exString);
                         }
                         if (sourceInd) sourceInd.innerText = 'Official Dictionary API';
-                        return;
+                        return; // 成功獲取 API，結束。
                     }
                 }
-            } catch (e) {}
+            } catch (e) {
+                clearTimeout(timeoutId);
+                console.warn("Dictionary API fetch failed or timed out:", e);
+            }
 
-            if (posBadge) posBadge.innerText = 'word';
-            if (defText) defText.innerText = `Vocabulary entry: "${word}".`;
+            // 3. 如果 API 失敗或 404，執行安全的 Fallback，解除卡死狀態
+            if (posBadge) posBadge.innerText = customWordDatabase[word]?.pos || 'word';
+            if (defText) defText.innerHTML = `<span class="text-slate-500 italic">無可用線上釋義 (No online definition found)</span>`;
             if (exampleBox) exampleBox.classList.add('hidden');
             if (sourceInd) sourceInd.innerText = 'Offline Entry';
         }
@@ -2398,7 +1799,6 @@
         async function processWord() {
             const rawVal = document.getElementById('word-input').value.trim();
             const inputVal = rawVal.toLowerCase() || "climb";
-            
             stopAllPlayback();
 
             if (customWordDatabase[inputVal]) {
@@ -2461,9 +1861,7 @@
         function stopAllPlayback() {
             activeSessionId++;
             if (window.speechSynthesis) window.speechSynthesis.cancel();
-            activeAudioElements.forEach(a => {
-                try { a.pause(); a.currentTime = 0; } catch(e){}
-            });
+            activeAudioElements.forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e){} });
             activeAudioElements = [];
             clearVisualHighlights();
         }
@@ -2503,13 +1901,8 @@
             const backdrop = document.getElementById('nav-drawer-backdrop');
             const drawer = document.getElementById('nav-drawer');
             if (!backdrop || !drawer) return;
-            if (show) {
-                backdrop.classList.remove('hidden');
-                drawer.classList.remove('translate-x-full');
-            } else {
-                backdrop.classList.add('hidden');
-                drawer.classList.add('translate-x-full');
-            }
+            if (show) { backdrop.classList.remove('hidden'); drawer.classList.remove('translate-x-full'); }
+            else { backdrop.classList.add('hidden'); drawer.classList.add('translate-x-full'); }
         }
 
         function selectNavTab(tabId) {
@@ -2524,25 +1917,14 @@
 
             toggleNavMenu(false);
 
-            const labelMap = { 
-                main: '🏠', dictionary: '📖', extractor: '📝', ipa: '📊', flashcard: '🎴', scramble: '✍️', profile: '👤'
-            };
+            const labelMap = { main: '🏠', dictionary: '📖', extractor: '📝', ipa: '📊', flashcard: '🎴', scramble: '✍️', profile: '👤' };
             const label = document.getElementById('nav-active-label');
             if (label && labelMap[tabId]) label.innerHTML = `<span>${labelMap[tabId]}</span>`;
 
-            if (tabId === 'ipa' && document.getElementById('grid-vowels').innerHTML === '') {
-                renderIPAChart();
-            }
-            if (tabId === 'dictionary') {
-                renderDictionary();
-            }
-            if (tabId === 'flashcard') {
-                renderFlashcardSubsetSelectors();
-                reloadFlashcards();
-            }
-            if (tabId === 'scramble') {
-                renderScrambleSubsetSelectors();
-            }
+            if (tabId === 'ipa' && document.getElementById('grid-vowels').innerHTML === '') renderIPAChart();
+            if (tabId === 'dictionary') renderDictionary();
+            if (tabId === 'flashcard') { renderFlashcardSubsetSelectors(); reloadFlashcards(); }
+            if (tabId === 'scramble') renderScrambleSubsetSelectors();
         }
 
         let flashcardPool = [];
@@ -2552,12 +1934,7 @@
         function renderFlashcardSubsetSelectors() {
             const container = document.getElementById('fc-subsets-checkboxes');
             if (!container) return;
-
-            const allSubsets = [
-                { id: '__ALL__', name: '全部核心詞庫', count: Object.keys(customWordDatabase).length },
-                ...Object.values(userSubsets).map(s => ({ id: s.id, name: s.name, count: s.words.length }))
-            ];
-
+            const allSubsets = [{ id: '__ALL__', name: '全部核心詞庫', count: Object.keys(customWordDatabase).length }, ...Object.values(userSubsets).map(s => ({ id: s.id, name: s.name, count: s.words.length }))];
             container.innerHTML = allSubsets.map(sub => {
                 const isChecked = selectedFlashcardSubsets.has(sub.id);
                 return `
@@ -2570,39 +1947,25 @@
         }
 
         function toggleFlashcardSubset(subId) {
-            if (selectedFlashcardSubsets.has(subId)) selectedFlashcardSubsets.delete(subId);
-            else selectedFlashcardSubsets.add(subId);
+            if (selectedFlashcardSubsets.has(subId)) selectedFlashcardSubsets.delete(subId); else selectedFlashcardSubsets.add(subId);
             if (selectedFlashcardSubsets.size === 0) selectedFlashcardSubsets.add('__ALL__');
-            renderFlashcardSubsetSelectors();
-            reloadFlashcards();
+            renderFlashcardSubsetSelectors(); reloadFlashcards();
         }
 
         function selectAllFlashcardSubsets(selectAll) {
             selectedFlashcardSubsets.clear();
-            if (selectAll) {
-                selectedFlashcardSubsets.add('__ALL__');
-                Object.keys(userSubsets).forEach(id => selectedFlashcardSubsets.add(id));
-            } else {
-                selectedFlashcardSubsets.add('__ALL__');
-            }
-            renderFlashcardSubsetSelectors();
-            reloadFlashcards();
+            if (selectAll) { selectedFlashcardSubsets.add('__ALL__'); Object.keys(userSubsets).forEach(id => selectedFlashcardSubsets.add(id)); }
+            else selectedFlashcardSubsets.add('__ALL__');
+            renderFlashcardSubsetSelectors(); reloadFlashcards();
         }
 
         function reloadFlashcards() {
             const wordSet = new Set();
-            if (selectedFlashcardSubsets.has('__ALL__')) {
-                Object.keys(customWordDatabase).forEach(w => wordSet.add(w.toLowerCase()));
-            }
+            if (selectedFlashcardSubsets.has('__ALL__')) Object.keys(customWordDatabase).forEach(w => wordSet.add(w.toLowerCase()));
             selectedFlashcardSubsets.forEach(subId => {
-                if (subId !== '__ALL__' && userSubsets[subId]) {
-                    userSubsets[subId].words.forEach(w => wordSet.add(w.toLowerCase()));
-                }
+                if (subId !== '__ALL__' && userSubsets[subId]) userSubsets[subId].words.forEach(w => wordSet.add(w.toLowerCase()));
             });
-
-            flashcardPool = Array.from(wordSet);
-            flashcardIndex = 0;
-            renderCurrentFlashcard();
+            flashcardPool = Array.from(wordSet); flashcardIndex = 0; renderCurrentFlashcard();
         }
 
         async function renderCurrentFlashcard() {
@@ -2610,20 +1973,18 @@
             const currentWord = flashcardPool[flashcardIndex];
             document.getElementById('fc-word').innerText = currentWord;
             document.getElementById('fc-progress-badge').innerText = `第 ${flashcardIndex + 1} / ${flashcardPool.length} 張`;
-
             document.getElementById('fc-def-box').classList.add('hidden');
             const toggleText = document.getElementById('fc-def-toggle-text');
             if (toggleText) toggleText.innerText = (currentLang === 'en') ? 'Show English Definition' : '顯示英文解釋';
 
             let entry = customWordDatabase[currentWord] || decomposeWordAutomatically(currentWord);
-            currentAnalysis = entry; // Enable individual chunk play in flashcard
-
+            currentAnalysis = entry; // Enable chunk playback
             document.getElementById('fc-ipa').innerText = entry.ipa;
 
             const chunksBox = document.getElementById('fc-chunks-box');
             if (chunksBox && entry.chunks) {
                 chunksBox.innerHTML = entry.chunks.map((c, idx) => `
-                    <div onclick="playIndividualChunk(${idx})" class="px-3 py-1 bg-white rounded-xl border border-slate-200 text-center cursor-pointer hover:bg-blue-50 hover:border-blue-400 transition-colors shadow-2xs">
+                    <div id="fc-chunk-${idx}" onclick="playIndividualChunk(${idx})" class="px-3 py-1 bg-white rounded-xl border border-slate-200 text-center cursor-pointer hover:bg-blue-50 hover:border-blue-400 transition-colors shadow-2xs">
                         <div class="font-extrabold text-xs text-slate-800">${c.letters}</div>
                         <div class="text-[10px] text-blue-600 font-mono">/${(c.onset || '') + c.vowel + (c.coda || '')}/</div>
                     </div>
@@ -2655,8 +2016,7 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [flashcardPool[i], flashcardPool[j]] = [flashcardPool[j], flashcardPool[i]];
             }
-            flashcardIndex = 0;
-            renderCurrentFlashcard();
+            flashcardIndex = 0; renderCurrentFlashcard();
         }
 
         function playFlashcardAudio() {
@@ -2669,37 +2029,19 @@
         function openCurrentFlashcardInEngine() {
             if (flashcardPool.length === 0) return;
             const word = flashcardPool[flashcardIndex];
-            selectNavTab('main');
-            quickInputWord(word);
+            selectNavTab('main'); quickInputWord(word);
         }
 
-        let scrambleQuestions = [];
-        let currentScrambleIndex = 0;
-        let scrambleScore = 0;
-        let scrambleStreak = 0;
-        let scrambleLimit = 10;
-        let scrambleVoiceRepeats = 2;
-        let scrambleTimerSeconds = 0;
-        let scrambleTimerInterval = null;
-        let scrambleInputMode = 'tiles';
-        let currentActiveSlotIdx = 0;
-
-        let targetScrambleWord = "";
-        let targetLetterSlots = [];
-        let availableTiles = [];
-        let selectedScrambleSubsets = new Set(['__ALL__']);
-
+        let scrambleQuestions = []; let currentScrambleIndex = 0; let scrambleScore = 0; let scrambleStreak = 0;
+        let scrambleLimit = 10; let scrambleVoiceRepeats = 2; let scrambleTimerSeconds = 0; let scrambleTimerInterval = null;
+        let scrambleInputMode = 'tiles'; let currentActiveSlotIdx = 0;
+        let targetScrambleWord = ""; let targetLetterSlots = []; let availableTiles = []; let selectedScrambleSubsets = new Set(['__ALL__']);
         let hwCanvas = null, hwCtx = null, isDrawing = false, hwStrokesCount = 0;
 
         function renderScrambleSubsetSelectors() {
             const container = document.getElementById('scramble-subsets-checkboxes');
             if (!container) return;
-
-            const allSubsets = [
-                { id: '__ALL__', name: '全部核心詞庫', count: Object.keys(customWordDatabase).length },
-                ...Object.values(userSubsets).map(s => ({ id: s.id, name: s.name, count: s.words.length }))
-            ];
-
+            const allSubsets = [{ id: '__ALL__', name: '全部核心詞庫', count: Object.keys(customWordDatabase).length }, ...Object.values(userSubsets).map(s => ({ id: s.id, name: s.name, count: s.words.length }))];
             container.innerHTML = allSubsets.map(sub => {
                 const isChecked = selectedScrambleSubsets.has(sub.id);
                 return `
@@ -2712,64 +2054,46 @@
         }
 
         function toggleScrambleSubset(subId) {
-            if (selectedScrambleSubsets.has(subId)) selectedScrambleSubsets.delete(subId);
-            else selectedScrambleSubsets.add(subId);
+            if (selectedScrambleSubsets.has(subId)) selectedScrambleSubsets.delete(subId); else selectedScrambleSubsets.add(subId);
             if (selectedScrambleSubsets.size === 0) selectedScrambleSubsets.add('__ALL__');
             renderScrambleSubsetSelectors();
         }
 
         function setScrambleVoiceRepeats(n, ev) {
             scrambleVoiceRepeats = n;
-            document.querySelectorAll('.scramble-repeat-btn').forEach(btn => {
-                btn.className = "scramble-repeat-btn flex-1 py-2 bg-white border-2 border-slate-200 rounded-xl font-black text-xs text-slate-700 hover:border-blue-500";
-            });
+            document.querySelectorAll('.scramble-repeat-btn').forEach(btn => btn.className = "scramble-repeat-btn flex-1 py-2 bg-white border-2 border-slate-200 rounded-xl font-black text-xs text-slate-700 hover:border-blue-500");
             const target = ev?.currentTarget || ev?.target;
             if (target) target.className = "scramble-repeat-btn flex-1 py-2 bg-blue-600 text-white border-2 border-blue-600 rounded-xl font-black text-xs";
         }
 
         function setScrambleTimer(s, ev) {
             scrambleTimerSeconds = s;
-            document.querySelectorAll('.scramble-timer-btn').forEach(btn => {
-                btn.className = "scramble-timer-btn py-2 bg-white border-2 border-slate-200 rounded-xl font-black text-xs text-slate-700 hover:border-blue-500";
-            });
+            document.querySelectorAll('.scramble-timer-btn').forEach(btn => btn.className = "scramble-timer-btn py-2 bg-white border-2 border-slate-200 rounded-xl font-black text-xs text-slate-700 hover:border-blue-500");
             const target = ev?.currentTarget || ev?.target;
             if (target) target.className = "scramble-timer-btn py-2 bg-blue-600 text-white border-2 border-blue-600 rounded-xl font-black text-xs";
         }
 
         function setScrambleQuestionCount(cnt, ev) {
             scrambleLimit = cnt;
-            document.querySelectorAll('.scramble-count-btn').forEach(btn => {
-                btn.className = "scramble-count-btn px-4 py-2 bg-white border-2 border-slate-200 rounded-xl font-black text-xs text-slate-700 hover:border-blue-500";
-            });
+            document.querySelectorAll('.scramble-count-btn').forEach(btn => btn.className = "scramble-count-btn px-4 py-2 bg-white border-2 border-slate-200 rounded-xl font-black text-xs text-slate-700 hover:border-blue-500");
             const target = ev?.currentTarget || ev?.target;
             if (target) target.className = "scramble-count-btn px-4 py-2 bg-blue-600 text-white border-2 border-blue-600 rounded-xl font-black text-xs";
         }
 
         function setScrambleInputMode(mode, ev) {
             scrambleInputMode = mode;
-            document.querySelectorAll('.scramble-mode-pref-btn').forEach(btn => {
-                btn.className = "scramble-mode-pref-btn px-3 py-2 bg-white text-slate-700 border-2 border-slate-200 rounded-xl font-black text-xs flex flex-col items-center gap-1 hover:border-blue-500";
-            });
+            document.querySelectorAll('.scramble-mode-pref-btn').forEach(btn => btn.className = "scramble-mode-pref-btn px-3 py-2 bg-white text-slate-700 border-2 border-slate-200 rounded-xl font-black text-xs flex flex-col items-center gap-1 hover:border-blue-500");
             const target = ev?.currentTarget || ev?.target;
             if (target) target.className = "scramble-mode-pref-btn px-3 py-2 bg-blue-600 text-white border-2 border-blue-600 rounded-xl font-black text-xs flex flex-col items-center gap-1 shadow-xs";
         }
 
         function startScrambleGame() {
             const wordSet = new Set();
-            if (selectedScrambleSubsets.has('__ALL__')) {
-                Object.keys(customWordDatabase).forEach(w => wordSet.add(w.toLowerCase()));
-            }
-            selectedScrambleSubsets.forEach(subId => {
-                if (subId !== '__ALL__' && userSubsets[subId]) {
-                    userSubsets[subId].words.forEach(w => wordSet.add(w.toLowerCase()));
-                }
-            });
+            if (selectedScrambleSubsets.has('__ALL__')) Object.keys(customWordDatabase).forEach(w => wordSet.add(w.toLowerCase()));
+            selectedScrambleSubsets.forEach(subId => { if (subId !== '__ALL__' && userSubsets[subId]) userSubsets[subId].words.forEach(w => wordSet.add(w.toLowerCase())); });
 
             const candidateWords = Array.from(wordSet).filter(w => w.length >= 3 && /^[a-z]+$/i.test(w));
-            if (candidateWords.length === 0) {
-                showToast("請先選擇至少一個包含生字的清單！", "warning");
-                return;
-            }
+            if (candidateWords.length === 0) { showToast("請先選擇至少一個包含生字的清單！", "warning"); return; }
 
             for (let i = candidateWords.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -2777,13 +2101,10 @@
             }
 
             scrambleQuestions = candidateWords.slice(0, Math.min(candidateWords.length, scrambleLimit));
-            currentScrambleIndex = 0;
-            scrambleScore = 0;
-            scrambleStreak = 0;
+            currentScrambleIndex = 0; scrambleScore = 0; scrambleStreak = 0;
 
             document.getElementById('scramble-setup-box').classList.add('hidden');
             document.getElementById('scramble-game-arena').classList.remove('hidden');
-
             loadCurrentScrambleQuestion();
         }
 
@@ -2799,12 +2120,9 @@
             targetScrambleWord = scrambleQuestions[currentScrambleIndex].toLowerCase();
             const wordLen = targetScrambleWord.length;
 
-            targetLetterSlots = new Array(wordLen).fill(null);
-            currentActiveSlotIdx = 0;
+            targetLetterSlots = new Array(wordLen).fill(null); currentActiveSlotIdx = 0;
 
-            const letters = targetScrambleWord.split('');
-            let scrambled = [...letters];
-            let attempts = 0;
+            const letters = targetScrambleWord.split(''); let scrambled = [...letters]; let attempts = 0;
             while (scrambled.join('') === targetScrambleWord && attempts < 10) {
                 for (let i = scrambled.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -2817,8 +2135,7 @@
 
             document.getElementById('scramble-q-progress').innerText = `題目 ${currentScrambleIndex + 1} / ${scrambleQuestions.length}`;
             document.getElementById('scramble-streak-badge').innerText = `🔥 連對: ${scrambleStreak}`;
-            const pct = ((currentScrambleIndex) / scrambleQuestions.length) * 100;
-            document.getElementById('scramble-progress-fill').style.width = `${pct}%`;
+            document.getElementById('scramble-progress-fill').style.width = `${((currentScrambleIndex) / scrambleQuestions.length) * 100}%`;
             document.getElementById('scramble-feedback').innerText = '';
 
             const entry = customWordDatabase[targetScrambleWord] || decomposeWordAutomatically(targetScrambleWord);
@@ -2826,44 +2143,26 @@
             document.getElementById('scramble-hint-def').innerText = entry.definition || '聆聽發音並拼出完整單字。';
 
             switchActiveScrambleInputMode(scrambleInputMode);
-            renderScrambleSlots();
-            renderScrambleTiles();
-            clearHandwritingCanvas();
-            updateHandwritingStatusIndicator();
-            startScrambleQuestionTimer();
-
-            setTimeout(() => triggerScramblePlaySequence(), 300);
+            renderScrambleSlots(); renderScrambleTiles(); clearHandwritingCanvas(); updateHandwritingStatusIndicator();
+            startScrambleQuestionTimer(); setTimeout(() => triggerScramblePlaySequence(), 300);
         }
 
         function triggerScramblePlaySequence() {
-            if (!targetScrambleWord) return;
-            stopAllPlayback();
-            playWholeWordAudioUK(targetScrambleWord, scrambleVoiceRepeats, activeSessionId);
+            if (!targetScrambleWord) return; stopAllPlayback(); playWholeWordAudioUK(targetScrambleWord, scrambleVoiceRepeats, activeSessionId);
         }
 
         function startScrambleQuestionTimer() {
-            const pill = document.getElementById('scramble-timer-pill');
-            const secSpan = document.getElementById('scramble-timer-seconds');
-            if (scrambleTimerSeconds <= 0) {
-                if (pill) pill.classList.add('hidden');
-                return;
-            }
-            if (pill) pill.classList.remove('hidden');
-            let remaining = scrambleTimerSeconds;
-            if (secSpan) secSpan.innerText = remaining;
+            const pill = document.getElementById('scramble-timer-pill'); const secSpan = document.getElementById('scramble-timer-seconds');
+            if (scrambleTimerSeconds <= 0) { if (pill) pill.classList.add('hidden'); return; }
+            if (pill) pill.classList.remove('hidden'); let remaining = scrambleTimerSeconds; if (secSpan) secSpan.innerText = remaining;
 
             scrambleTimerInterval = setInterval(() => {
-                remaining--;
-                if (secSpan) secSpan.innerText = remaining;
+                remaining--; if (secSpan) secSpan.innerText = remaining;
                 if (remaining <= 0) {
                     clearInterval(scrambleTimerInterval);
                     const feedback = document.getElementById('scramble-feedback');
-                    if (feedback) {
-                        feedback.innerText = `⏱️ 時間到！正確答案是: ${targetScrambleWord.toUpperCase()}`;
-                        feedback.className = "text-center font-black text-xs text-red-500 animate-shake";
-                    }
-                    scrambleStreak = 0;
-                    setTimeout(advanceToNextScrambleQuestion, 1800);
+                    if (feedback) { feedback.innerText = `⏱️ 時間到！正確答案是: ${targetScrambleWord.toUpperCase()}`; feedback.className = "text-center font-black text-xs text-red-500 animate-shake"; }
+                    scrambleStreak = 0; setTimeout(advanceToNextScrambleQuestion, 1800);
                 }
             }, 1000);
         }
@@ -2871,500 +2170,226 @@
         function renderScrambleSlots() {
             const container = document.getElementById('scramble-slots-container');
             if (!container) return;
-
             container.innerHTML = targetLetterSlots.map((slot, idx) => {
                 const isActive = (idx === currentActiveSlotIdx && scrambleInputMode === 'keyboard');
                 const activeClass = isActive ? 'active-slot ring-2 ring-blue-500 bg-blue-50/50' : '';
-
-                if (slot) {
-                    return `
-                        <button onclick="handleSlotClick(${idx})" 
-                                class="scramble-box-slot rounded-md bg-white border-2 border-slate-700 text-slate-900 font-black text-xl shadow-2xs flex items-center justify-center cursor-pointer transition-transform active:scale-95 ${activeClass}">
-                            ${slot.letter}
-                        </button>
-                    `;
-                } else {
-                    return `
-                        <button onclick="handleSlotClick(${idx})" 
-                                class="scramble-box-slot rounded-md bg-white border-2 border-dashed border-slate-300 hover:border-blue-400 flex items-center justify-center text-slate-300 font-mono text-base select-none cursor-pointer ${activeClass}">
-                            ${isActive ? '<span class="animate-pulse text-blue-500 font-black">|</span>' : '_'}
-                        </button>
-                    `;
-                }
+                if (slot) return `<button onclick="handleSlotClick(${idx})" class="scramble-box-slot rounded-md bg-white border-2 border-slate-700 text-slate-900 font-black text-xl shadow-2xs flex items-center justify-center cursor-pointer transition-transform active:scale-95 ${activeClass}">${slot.letter}</button>`;
+                return `<button onclick="handleSlotClick(${idx})" class="scramble-box-slot rounded-md bg-white border-2 border-dashed border-slate-300 hover:border-blue-400 flex items-center justify-center text-slate-300 font-mono text-base select-none cursor-pointer ${activeClass}">${isActive ? '<span class="animate-pulse text-blue-500 font-black">|</span>' : '_'}</button>`;
             }).join('');
-
             updateHandwritingStatusIndicator();
         }
 
         function updateHandwritingStatusIndicator() {
-            const filledCount = targetLetterSlots.filter(s => s !== null).length;
-            const totalCount = targetLetterSlots.length;
+            const filledCount = targetLetterSlots.filter(s => s !== null).length; const totalCount = targetLetterSlots.length;
             const firstEmptyIdx = targetLetterSlots.findIndex(s => s === null);
-
-            const countText = document.getElementById('hw-filled-count-text');
-            const tipText = document.getElementById('hw-next-slot-tip');
-
+            const countText = document.getElementById('hw-filled-count-text'); const tipText = document.getElementById('hw-next-slot-tip');
             if (countText) countText.innerText = `${filledCount}/${totalCount}`;
             if (tipText) {
-                if (firstEmptyIdx === -1) {
-                    tipText.innerText = "✓ 所有空格已填滿，可點檢查答案";
-                    tipText.className = "text-emerald-600 font-bold";
-                } else {
-                    tipText.innerText = `下一次將由第 ${firstEmptyIdx + 1} 格接續填入`;
-                    tipText.className = "text-indigo-600 font-bold";
-                }
+                if (firstEmptyIdx === -1) { tipText.innerText = "✓ 所有空格已填滿，可點檢查答案"; tipText.className = "text-emerald-600 font-bold"; }
+                else { tipText.innerText = `下一次將由第 ${firstEmptyIdx + 1} 格接續填入`; tipText.className = "text-indigo-600 font-bold"; }
             }
         }
 
-        function handleSlotClick(idx) {
-            currentActiveSlotIdx = idx;
-            if (scrambleInputMode === 'keyboard') {
-                focusKeyboardInput();
-            } else {
-                removeLetterFromSlot(idx);
-            }
-            renderScrambleSlots();
-        }
+        function handleSlotClick(idx) { currentActiveSlotIdx = idx; if (scrambleInputMode === 'keyboard') focusKeyboardInput(); else removeLetterFromSlot(idx); renderScrambleSlots(); }
 
         function renderScrambleTiles() {
             const container = document.getElementById('scramble-tiles-pool');
             if (!container) return;
-
             container.innerHTML = availableTiles.map(tile => {
-                if (tile.isUsed) {
-                    return `
-                        <div class="scramble-box-tile rounded-md bg-slate-100 border border-slate-200 text-slate-300 font-bold text-lg flex items-center justify-center opacity-30 select-none">
-                            ${tile.letter}
-                        </div>
-                    `;
-                }
-                return `
-                    <button onclick="placeTileInFirstEmptySlot('${tile.id}')" 
-                            class="scramble-box-tile rounded-md bg-slate-50 hover:bg-blue-50 active:bg-blue-100 text-slate-800 hover:text-blue-700 font-black text-lg shadow-2xs border-2 border-slate-300 hover:border-blue-500 flex items-center justify-center transition-all">
-                        ${tile.letter}
-                    </button>
-                `;
+                if (tile.isUsed) return `<div class="scramble-box-tile rounded-md bg-slate-100 border border-slate-200 text-slate-300 font-bold text-lg flex items-center justify-center opacity-30 select-none">${tile.letter}</div>`;
+                return `<button onclick="placeTileInFirstEmptySlot('${tile.id}')" class="scramble-box-tile rounded-md bg-slate-50 hover:bg-blue-50 active:bg-blue-100 text-slate-800 hover:text-blue-700 font-black text-lg shadow-2xs border-2 border-slate-300 hover:border-blue-500 flex items-center justify-center transition-all">${tile.letter}</button>`;
             }).join('');
         }
 
         function placeTileInFirstEmptySlot(tileId) {
-            const tile = availableTiles.find(t => t.id === tileId);
-            if (!tile || tile.isUsed) return;
-            const emptyIdx = targetLetterSlots.findIndex(s => s === null);
-            if (emptyIdx === -1) return;
-
-            tile.isUsed = true;
-            targetLetterSlots[emptyIdx] = { tileId: tile.id, letter: tile.letter };
+            const tile = availableTiles.find(t => t.id === tileId); if (!tile || tile.isUsed) return;
+            const emptyIdx = targetLetterSlots.findIndex(s => s === null); if (emptyIdx === -1) return;
+            tile.isUsed = true; targetLetterSlots[emptyIdx] = { tileId: tile.id, letter: tile.letter };
             currentActiveSlotIdx = Math.min(targetLetterSlots.length - 1, emptyIdx + 1);
-
-            renderScrambleSlots();
-            renderScrambleTiles();
-
+            renderScrambleSlots(); renderScrambleTiles();
             if (!targetLetterSlots.includes(null)) setTimeout(checkScrambleAnswer, 180);
         }
 
         function removeLetterFromSlot(slotIdx) {
-            const slotItem = targetLetterSlots[slotIdx];
-            if (!slotItem) return;
-            const tile = availableTiles.find(t => t.id === slotItem.tileId);
-            if (tile) tile.isUsed = false;
-            targetLetterSlots[slotIdx] = null;
-            currentActiveSlotIdx = slotIdx;
-            renderScrambleSlots();
-            renderScrambleTiles();
+            const slotItem = targetLetterSlots[slotIdx]; if (!slotItem) return;
+            const tile = availableTiles.find(t => t.id === slotItem.tileId); if (tile) tile.isUsed = false;
+            targetLetterSlots[slotIdx] = null; currentActiveSlotIdx = slotIdx;
+            renderScrambleSlots(); renderScrambleTiles();
         }
 
         function resetCurrentScrambleSlots() {
-            targetLetterSlots.fill(null);
-            availableTiles.forEach(t => { t.isUsed = false; });
-            currentActiveSlotIdx = 0;
-            renderScrambleSlots();
-            renderScrambleTiles();
-            clearHandwritingCanvas();
-            document.getElementById('scramble-feedback').innerText = '';
+            targetLetterSlots.fill(null); availableTiles.forEach(t => { t.isUsed = false; }); currentActiveSlotIdx = 0;
+            renderScrambleSlots(); renderScrambleTiles(); clearHandwritingCanvas(); document.getElementById('scramble-feedback').innerText = '';
         }
 
         function checkScrambleAnswer() {
             const currentSpelling = targetLetterSlots.map(s => s ? s.letter : '').join('');
             const feedback = document.getElementById('scramble-feedback');
-
             if (currentSpelling.length < targetScrambleWord.length) {
-                if (feedback) {
-                    feedback.innerText = "請填入全部字母！";
-                    feedback.className = "text-center font-black text-xs text-amber-600";
-                }
+                if (feedback) { feedback.innerText = "請填入全部字母！"; feedback.className = "text-center font-black text-xs text-amber-600"; }
                 return;
             }
-
             if (currentSpelling.toLowerCase() === targetScrambleWord.toLowerCase()) {
-                clearInterval(scrambleTimerInterval);
-                scrambleScore += 10;
-                scrambleStreak += 1;
+                clearInterval(scrambleTimerInterval); scrambleScore += 10; scrambleStreak += 1;
                 document.getElementById('scramble-streak-badge').innerText = `🔥 連對: ${scrambleStreak}`;
-                if (feedback) {
-                    feedback.innerText = "🎉 太棒了，拼寫完全正確！";
-                    feedback.className = "text-center font-black text-xs text-emerald-600";
-                }
+                if (feedback) { feedback.innerText = "🎉 太棒了，拼寫完全正確！"; feedback.className = "text-center font-black text-xs text-emerald-600"; }
                 setTimeout(advanceToNextScrambleQuestion, 1200);
             } else {
-                if (feedback) {
-                    feedback.innerText = "拼法有小誤，再聽一次音重新試試看！";
-                    feedback.className = "text-center font-black text-xs text-red-500 animate-shake";
-                }
-                scrambleStreak = 0;
-                document.getElementById('scramble-streak-badge').innerText = `🔥 連對: 0`;
+                if (feedback) { feedback.innerText = "拼法有小誤，再聽一次音重新試試看！"; feedback.className = "text-center font-black text-xs text-red-500 animate-shake"; }
+                scrambleStreak = 0; document.getElementById('scramble-streak-badge').innerText = `🔥 連對: 0`;
             }
         }
 
         function advanceToNextScrambleQuestion() {
             currentScrambleIndex++;
-            if (currentScrambleIndex < scrambleQuestions.length) {
-                loadCurrentScrambleQuestion();
-            } else {
-                showToast(`🏆 挑戰完成！總得分: ${scrambleScore}`, "success");
-                quitScrambleGame();
-            }
+            if (currentScrambleIndex < scrambleQuestions.length) loadCurrentScrambleQuestion();
+            else { showToast(`🏆 挑戰完成！總得分: ${scrambleScore}`, "success"); quitScrambleGame(); }
         }
 
         function switchActiveScrambleInputMode(mode) {
             scrambleInputMode = mode;
             ['tiles', 'handwriting', 'keyboard'].forEach(m => {
-                const tab = document.getElementById(`tab-input-${m}`);
-                const panel = document.getElementById(`panel-input-${m}`);
-                if (tab) {
-                    tab.className = (m === mode) 
-                        ? "px-3 py-1.5 rounded-xl font-black text-xs transition-all bg-white text-blue-600 shadow-xs border border-slate-200" 
-                        : "px-3 py-1.5 rounded-xl font-bold text-xs transition-all text-slate-600 hover:text-slate-900";
-                }
+                const tab = document.getElementById(`tab-input-${m}`); const panel = document.getElementById(`panel-input-${m}`);
+                if (tab) tab.className = (m === mode) ? "px-3 py-1.5 rounded-xl font-black text-xs transition-all bg-white text-blue-600 shadow-xs border border-slate-200" : "px-3 py-1.5 rounded-xl font-bold text-xs transition-all text-slate-600 hover:text-slate-900";
                 if (panel) panel.classList.toggle('hidden', m !== mode);
             });
-
-            if (mode === 'handwriting') {
-                setTimeout(() => {
-                    setupHandwritingCanvas();
-                    updateHandwritingStatusIndicator();
-                }, 50);
-            } else if (mode === 'keyboard') {
-                focusKeyboardInput();
-            }
+            if (mode === 'handwriting') { setTimeout(() => { setupHandwritingCanvas(); updateHandwritingStatusIndicator(); }, 50); }
+            else if (mode === 'keyboard') focusKeyboardInput();
             renderScrambleSlots();
         }
 
-        function focusKeyboardInput() {
-            const input = document.getElementById('scramble-hidden-keyboard-input');
-            if (input) input.focus();
-        }
+        function focusKeyboardInput() { const input = document.getElementById('scramble-hidden-keyboard-input'); if (input) input.focus(); }
 
         function typeLetterByKeyboard(char) {
             if (!char || !/^[a-z]$/i.test(char)) return;
-            const letter = char.toLowerCase();
-            let targetIdx = currentActiveSlotIdx;
-            if (targetLetterSlots[targetIdx] !== null) {
-                const nextEmpty = targetLetterSlots.findIndex(s => s === null);
-                if (nextEmpty !== -1) targetIdx = nextEmpty;
-            }
-
+            const letter = char.toLowerCase(); let targetIdx = currentActiveSlotIdx;
+            if (targetLetterSlots[targetIdx] !== null) { const nextEmpty = targetLetterSlots.findIndex(s => s === null); if (nextEmpty !== -1) targetIdx = nextEmpty; }
             let matchedTile = availableTiles.find(t => t.letter.toLowerCase() === letter && !t.isUsed);
             let tileId = matchedTile ? matchedTile.id : `virt_${Date.now()}_${targetIdx}`;
             if (matchedTile) matchedTile.isUsed = true;
-
-            if (targetLetterSlots[targetIdx]) {
-                const oldTile = availableTiles.find(t => t.id === targetLetterSlots[targetIdx].tileId);
-                if (oldTile) oldTile.isUsed = false;
-            }
-
+            if (targetLetterSlots[targetIdx]) { const oldTile = availableTiles.find(t => t.id === targetLetterSlots[targetIdx].tileId); if (oldTile) oldTile.isUsed = false; }
             targetLetterSlots[targetIdx] = { tileId, letter };
             const nextEmptyIdx = targetLetterSlots.findIndex(s => s === null);
             currentActiveSlotIdx = nextEmptyIdx !== -1 ? nextEmptyIdx : Math.min(targetLetterSlots.length - 1, targetIdx + 1);
-
-            renderScrambleSlots();
-            renderScrambleTiles();
+            renderScrambleSlots(); renderScrambleTiles();
             if (!targetLetterSlots.includes(null)) setTimeout(checkScrambleAnswer, 200);
         }
 
         function handleKeyboardBackspace() {
             let targetIdx = currentActiveSlotIdx;
             if (targetLetterSlots[targetIdx] === null && targetIdx > 0) targetIdx -= 1;
-            if (targetLetterSlots[targetIdx]) {
-                removeLetterFromSlot(targetIdx);
-                currentActiveSlotIdx = targetIdx;
-            } else if (targetIdx > 0) {
-                currentActiveSlotIdx = targetIdx - 1;
-            }
+            if (targetLetterSlots[targetIdx]) { removeLetterFromSlot(targetIdx); currentActiveSlotIdx = targetIdx; }
+            else if (targetIdx > 0) currentActiveSlotIdx = targetIdx - 1;
             renderScrambleSlots();
         }
 
         window.addEventListener('keydown', (e) => {
-            const arena = document.getElementById('scramble-game-arena');
-            if (!arena || arena.classList.contains('hidden')) return;
+            const arena = document.getElementById('scramble-game-arena'); if (!arena || arena.classList.contains('hidden')) return;
             if (e.target.tagName === 'INPUT' && e.target.id !== 'scramble-hidden-keyboard-input') return;
             if (e.target.tagName === 'TEXTAREA') return;
-
             if (e.key === 'Backspace') { e.preventDefault(); handleKeyboardBackspace(); }
             else if (e.key === 'Enter') { e.preventDefault(); checkScrambleAnswer(); }
             else if (/^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); typeLetterByKeyboard(e.key); }
         });
 
         function setupHandwritingCanvas() {
-            hwCanvas = document.getElementById('scramble-handwriting-canvas');
-            if (!hwCanvas) return;
+            hwCanvas = document.getElementById('scramble-handwriting-canvas'); if (!hwCanvas) return;
             const wrapper = document.getElementById('handwriting-canvas-wrapper');
-            hwCanvas.width = wrapper ? wrapper.getBoundingClientRect().width : 340;
-            hwCanvas.height = 144;
-            hwCtx = hwCanvas.getContext('2d');
-            hwCtx.strokeStyle = '#0f172a';
-            hwCtx.lineWidth = 4.5;
-            hwCtx.lineCap = 'round';
-            hwCtx.lineJoin = 'round';
-
+            hwCanvas.width = wrapper ? wrapper.getBoundingClientRect().width : 340; hwCanvas.height = 144;
+            hwCtx = hwCanvas.getContext('2d'); hwCtx.strokeStyle = '#0f172a'; hwCtx.lineWidth = 4.5; hwCtx.lineCap = 'round'; hwCtx.lineJoin = 'round';
             let lastX = 0, lastY = 0;
-            const getPos = (e) => {
-                const r = hwCanvas.getBoundingClientRect();
-                return { x: e.clientX - r.left, y: e.clientY - r.top };
-            };
-
+            const getPos = (e) => { const r = hwCanvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
             hwCanvas.onpointerdown = (e) => {
-                e.preventDefault();
-                hwCanvas.setPointerCapture(e.pointerId);
-                isDrawing = true;
-                const pos = getPos(e);
-                lastX = pos.x; lastY = pos.y;
-                hwStrokesCount++;
-                hwCtx.beginPath();
-                hwCtx.arc(lastX, lastY, hwCtx.lineWidth / 2, 0, Math.PI * 2);
-                hwCtx.fillStyle = '#0f172a';
-                hwCtx.fill();
+                e.preventDefault(); hwCanvas.setPointerCapture(e.pointerId); isDrawing = true;
+                const pos = getPos(e); lastX = pos.x; lastY = pos.y; hwStrokesCount++;
+                hwCtx.beginPath(); hwCtx.arc(lastX, lastY, hwCtx.lineWidth / 2, 0, Math.PI * 2); hwCtx.fillStyle = '#0f172a'; hwCtx.fill();
             };
-
             hwCanvas.onpointermove = (e) => {
-                if (!isDrawing) return;
-                e.preventDefault();
-                const pos = getPos(e);
-                hwCtx.beginPath();
-                hwCtx.moveTo(lastX, lastY);
-                hwCtx.lineTo(pos.x, pos.y);
-                hwCtx.stroke();
-                lastX = pos.x; lastY = pos.y;
+                if (!isDrawing) return; e.preventDefault(); const pos = getPos(e);
+                hwCtx.beginPath(); hwCtx.moveTo(lastX, lastY); hwCtx.lineTo(pos.x, pos.y); hwCtx.stroke(); lastX = pos.x; lastY = pos.y;
             };
-
-            const endDraw = (e) => {
-                if (!isDrawing) return;
-                isDrawing = false;
-                try { hwCanvas.releasePointerCapture(e.pointerId); } catch(err){}
-            };
-
-            hwCanvas.onpointerup = endDraw;
-            hwCanvas.onpointercancel = endDraw;
+            const endDraw = (e) => { if (!isDrawing) return; isDrawing = false; try { hwCanvas.releasePointerCapture(e.pointerId); } catch(err){} };
+            hwCanvas.onpointerup = endDraw; hwCanvas.onpointercancel = endDraw;
         }
 
-        function clearHandwritingCanvas() {
-            if (hwCanvas && hwCtx) hwCtx.clearRect(0, 0, hwCanvas.width, hwCanvas.height);
-            hwStrokesCount = 0;
-        }
+        function clearHandwritingCanvas() { if (hwCanvas && hwCtx) hwCtx.clearRect(0, 0, hwCanvas.width, hwCanvas.height); hwStrokesCount = 0; }
 
         async function recognizeHandwriting() {
-            if (!hwCanvas || hwStrokesCount === 0) {
-                showToast("請先在四線格內手寫英文字母！", "warning");
-                return;
-            }
-
-            const spinner = document.getElementById('ocr-btn-spinner');
-            const btnText = document.getElementById('ocr-btn-text');
-            if (spinner) spinner.classList.remove('hidden');
-            if (btnText) btnText.innerText = '正在進行真實辨識...';
-
-            const offCanvas = document.createElement('canvas');
-            offCanvas.width = hwCanvas.width;
-            offCanvas.height = hwCanvas.height;
-            const offCtx = offCanvas.getContext('2d');
-            offCtx.fillStyle = '#ffffff';
-            offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
-            offCtx.drawImage(hwCanvas, 0, 0);
-
-            const imgDataUrl = offCanvas.toDataURL('image/png');
-            const base64Data = imgDataUrl.split(',')[1];
-            let recognizedLetters = "";
-
+            if (!hwCanvas || hwStrokesCount === 0) { showToast("請先在四線格內手寫英文字母！", "warning"); return; }
+            const spinner = document.getElementById('ocr-btn-spinner'); const btnText = document.getElementById('ocr-btn-text');
+            if (spinner) spinner.classList.remove('hidden'); if (btnText) btnText.innerText = '正在進行真實辨識...';
+            
+            const offCanvas = document.createElement('canvas'); offCanvas.width = hwCanvas.width; offCanvas.height = hwCanvas.height;
+            const offCtx = offCanvas.getContext('2d'); offCtx.fillStyle = '#ffffff'; offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height); offCtx.drawImage(hwCanvas, 0, 0);
+            const imgDataUrl = offCanvas.toDataURL('image/png'); const base64Data = imgDataUrl.split(',')[1]; let recognizedLetters = "";
             const geminiApiKey = localStorage.getItem('gemini_api_key');
 
             try {
                 if (geminiApiKey) {
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [
-                                    { text: "You are an accurate English handwriting OCR engine. Look at this black-and-white image of handwritten English letters. Output ONLY the lowercase letters written from left to right, with no spaces, punctuation, or other words. If no letters are visible, output empty string." },
-                                    { inline_data: { mime_type: "image/png", data: base64Data } }
-                                ]
-                            }],
-                            generationConfig: { temperature: 0.1, maxOutputTokens: 30 }
-                        })
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: "You are an accurate English handwriting OCR engine. Look at this black-and-white image of handwritten English letters. Output ONLY the lowercase letters written from left to right, with no spaces, punctuation, or other words. If no letters are visible, output empty string." }, { inline_data: { mime_type: "image/png", data: base64Data } }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 30 } })
                     });
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        const candidate = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-                        recognizedLetters = candidate.trim().toLowerCase().replace(/[^a-z]/g, '');
-                    }
+                    if (res.ok) { const data = await res.json(); const candidate = data.candidates?.[0]?.content?.parts?.[0]?.text || ""; recognizedLetters = candidate.trim().toLowerCase().replace(/[^a-z]/g, ''); }
                 }
-
                 if (!recognizedLetters && window.Tesseract) {
                     const result = await Tesseract.recognize(offCanvas, 'eng');
-                    if (result && result.data && result.data.text) {
-                        recognizedLetters = result.data.text.trim().toLowerCase().replace(/[^a-z]/g, '');
-                    }
+                    if (result && result.data && result.data.text) recognizedLetters = result.data.text.trim().toLowerCase().replace(/[^a-z]/g, '');
                 }
-            } catch (err) {
-                console.warn("OCR Recognition error:", err);
-            } finally {
-                if (spinner) spinner.classList.add('hidden');
-                if (btnText) btnText.innerText = '✨ 辨識手寫筆劃 (真 OCR)';
+            } catch (err) { console.warn("OCR Recognition error:", err); } finally {
+                if (spinner) spinner.classList.add('hidden'); if (btnText) btnText.innerText = '✨ 辨識手寫筆劃 (真 OCR)';
             }
-
             showRealHandwritingResultModal(imgDataUrl, recognizedLetters);
         }
 
         function showRealHandwritingResultModal(imgDataUrl, recognizedLetters) {
-            const letterArray = recognizedLetters.split('');
-            const targetLen = targetScrambleWord.length;
-            const countWritten = letterArray.length;
-
-            const firstEmptyIdx = targetLetterSlots.findIndex(s => s === null);
-            const currentFilledCount = targetLetterSlots.filter(s => s !== null).length;
-
-            let resultHtml = "";
-            let statusNotice = "";
-
+            const letterArray = recognizedLetters.split(''); const targetLen = targetScrambleWord.length; const countWritten = letterArray.length;
+            const firstEmptyIdx = targetLetterSlots.findIndex(s => s === null); const currentFilledCount = targetLetterSlots.filter(s => s !== null).length;
+            let resultHtml = ""; let statusNotice = "";
             if (countWritten === 0) {
                 resultHtml = `<div class="text-xs font-bold text-slate-400 py-3">未能清楚辨識筆劃，請確保字母書寫清晰連貫。</div>`;
                 statusNotice = `<div class="p-2 bg-amber-50 rounded-xl text-[11px] font-bold text-amber-700">⚠️ 未能辨識出英文字母，建議清空畫板重試。</div>`;
             } else {
-                resultHtml = `
-                    <div class="flex justify-center items-center gap-1.5 p-2 bg-slate-50 rounded-2xl border border-slate-200">
-                        ${letterArray.map(c => `
-                            <span class="w-8 h-10 rounded-lg bg-white border-2 border-indigo-500 font-black text-indigo-700 text-lg flex items-center justify-center uppercase shadow-2xs">${c}</span>
-                        `).join('')}
-                    </div>
-                `;
-
-                statusNotice = `
-                    <div class="p-2 bg-blue-50 rounded-xl text-[11px] font-bold text-blue-700 space-y-0.5">
-                        <div>📝 辨識出 ${countWritten} 個字母 (${recognizedLetters.toUpperCase()})</div>
-                        <div class="text-slate-500 font-medium">目前單字已填 ${currentFilledCount}/${targetLen} 字元。你可以選擇「接續填入未完成空格」或「從頭覆蓋」。</div>
-                    </div>
-                `;
+                resultHtml = `<div class="flex justify-center items-center gap-1.5 p-2 bg-slate-50 rounded-2xl border border-slate-200">${letterArray.map(c => `<span class="w-8 h-10 rounded-lg bg-white border-2 border-indigo-500 font-black text-indigo-700 text-lg flex items-center justify-center uppercase shadow-2xs">${c}</span>`).join('')}</div>`;
+                statusNotice = `<div class="p-2 bg-blue-50 rounded-xl text-[11px] font-bold text-blue-700 space-y-0.5"><div>📝 辨識出 ${countWritten} 個字母 (${recognizedLetters.toUpperCase()})</div><div class="text-slate-500 font-medium">目前單字已填 ${currentFilledCount}/${targetLen} 字元。你可以選擇「接續填入未完成空格」或「從頭覆蓋」。</div></div>`;
             }
-
-            const actions = [
-                { 
-                    text: "重新書寫", 
-                    class: "px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs", 
-                    onClick: () => { clearHandwritingCanvas(); closeCustomModal(); } 
-                }
-            ];
-
+            const actions = [{ text: "重新書寫", class: "px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs", onClick: () => { clearHandwritingCanvas(); closeCustomModal(); } }];
             if (countWritten > 0) {
                 const targetStartIdx = (firstEmptyIdx !== -1) ? firstEmptyIdx : 0;
-                actions.push({
-                    text: `➕ 接續填入 (由第 ${targetStartIdx + 1} 格起)`,
-                    class: "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-xs",
-                    onClick: () => {
-                        applyHandwrittenLettersToSlots(letterArray, targetStartIdx);
-                        closeCustomModal();
-                        clearHandwritingCanvas();
-                        showToast(`✓ 已接續填入: ${recognizedLetters.toUpperCase()}，可繼續書寫下一段！`, "success");
-                    }
-                });
+                actions.push({ text: `➕ 接續填入 (由第 ${targetStartIdx + 1} 格起)`, class: "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-xs", onClick: () => { applyHandwrittenLettersToSlots(letterArray, targetStartIdx); closeCustomModal(); clearHandwritingCanvas(); showToast(`✓ 已接續填入: ${recognizedLetters.toUpperCase()}，可繼續書寫下一段！`, "success"); } });
+                if (currentFilledCount > 0) { actions.push({ text: "↺ 從頭覆蓋 (由第 1 格)", class: "px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold rounded-xl text-xs", onClick: () => { resetCurrentScrambleSlots(); applyHandwrittenLettersToSlots(letterArray, 0); closeCustomModal(); clearHandwritingCanvas(); showToast(`✓ 已從頭覆蓋填入: ${recognizedLetters.toUpperCase()}！`, "info"); } }); }
+            } else { actions.push({ text: "關閉", class: "px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs", onClick: closeCustomModal }); }
 
-                if (currentFilledCount > 0) {
-                    actions.push({
-                        text: "↺ 從頭覆蓋 (由第 1 格)",
-                        class: "px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold rounded-xl text-xs",
-                        onClick: () => {
-                            resetCurrentScrambleSlots();
-                            applyHandwrittenLettersToSlots(letterArray, 0);
-                            closeCustomModal();
-                            clearHandwritingCanvas();
-                            showToast(`✓ 已從頭覆蓋填入: ${recognizedLetters.toUpperCase()}！`, "info");
-                        }
-                    });
-                }
-            } else {
-                actions.push({
-                    text: "關閉",
-                    class: "px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs",
-                    onClick: closeCustomModal
-                });
-            }
-
-            showCustomModal({
-                title: "✍️ 真實手寫辨識結果",
-                body: `
-                    <div class="space-y-2.5 text-center">
-                        <div class="p-2 bg-slate-50 rounded-xl border border-slate-200 flex justify-center">
-                            <img src="${imgDataUrl}" class="max-h-24 object-contain rounded-lg">
-                        </div>
-                        <div class="text-xs font-bold text-slate-500">系統真實讀取之筆劃字母：</div>
-                        ${resultHtml}
-                        ${statusNotice}
-                    </div>
-                `,
-                actions: actions
-            });
+            showCustomModal({ title: "✍️ 真實手寫辨識結果", body: `<div class="space-y-2.5 text-center"><div class="p-2 bg-slate-50 rounded-xl border border-slate-200 flex justify-center"><img src="${imgDataUrl}" class="max-h-24 object-contain rounded-lg"></div><div class="text-xs font-bold text-slate-500">系統真實讀取之筆劃字母：</div>${resultHtml}${statusNotice}</div>`, actions: actions });
         }
 
         function applyHandwrittenLettersToSlots(letters, startSlotIdx) {
             let writeIdx = startSlotIdx;
             letters.forEach((c) => {
-                while (writeIdx < targetLetterSlots.length && targetLetterSlots[writeIdx] !== null) {
-                    writeIdx++;
-                }
+                while (writeIdx < targetLetterSlots.length && targetLetterSlots[writeIdx] !== null) writeIdx++;
                 if (writeIdx < targetLetterSlots.length) {
                     let matchedTile = availableTiles.find(t => t.letter.toLowerCase() === c.toLowerCase() && !t.isUsed);
                     let tId = matchedTile ? matchedTile.id : `hw_${Date.now()}_${writeIdx}`;
                     if (matchedTile) matchedTile.isUsed = true;
-                    targetLetterSlots[writeIdx] = { tileId: tId, letter: c };
-                    writeIdx++;
+                    targetLetterSlots[writeIdx] = { tileId: tId, letter: c }; writeIdx++;
                 }
             });
-
             currentActiveSlotIdx = Math.min(targetLetterSlots.length - 1, writeIdx);
-            renderScrambleSlots();
-            renderScrambleTiles();
-            updateHandwritingStatusIndicator();
-
-            if (!targetLetterSlots.includes(null)) {
-                setTimeout(checkScrambleAnswer, 300);
-            }
+            renderScrambleSlots(); renderScrambleTiles(); updateHandwritingStatusIndicator();
+            if (!targetLetterSlots.includes(null)) setTimeout(checkScrambleAnswer, 300);
         }
 
         function openApiKeyModal() {
             const currentKey = localStorage.getItem('gemini_api_key') || '';
             showCustomModal({
                 title: "⚙️ AI 手寫辨識設定",
-                body: `
-                    <div class="space-y-2 text-left text-xs">
-                        <p class="text-slate-600">本系統預設內建 <strong>Tesseract.js 本地 OCR</strong>（零伺服器、永久免費）。</p>
-                        <p class="text-slate-600">若想獲得毫秒級、超高精度的手寫筆跡辨識，可填入個人的 <strong>Google Gemini API Key</strong>：</p>
-                        <input type="password" id="modal-gemini-key-input" class="w-full p-2.5 border-2 border-slate-200 rounded-xl font-mono text-xs focus:border-blue-500 focus:outline-none" placeholder="AIzaSy..." value="${currentKey}">
-                        <div class="text-[10px] text-slate-400">
-                            * 金鑰僅保存在你的本機瀏覽器（localStorage），絕不上傳任何第三方。<a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 underline">免費獲取 Google API Key</a>
-                        </div>
-                    </div>
-                `,
+                body: `<div class="space-y-2 text-left text-xs"><p class="text-slate-600">本系統預設內建 <strong>Tesseract.js 本地 OCR</strong>（零伺服器、永久免費）。</p><p class="text-slate-600">若想獲得毫秒級、超高精度的手寫筆跡辨識，可填入個人的 <strong>Google Gemini API Key</strong>：</p><input type="password" id="modal-gemini-key-input" class="w-full p-2.5 border-2 border-slate-200 rounded-xl font-mono text-xs focus:border-blue-500 focus:outline-none" placeholder="AIzaSy..." value="${currentKey}"><div class="text-[10px] text-slate-400">* 金鑰僅保存在你的本機瀏覽器（localStorage），絕不上傳任何第三方。<a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 underline">免費獲取 Google API Key</a></div></div>`,
                 actions: [
                     { text: "取消", class: "px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold", onClick: closeCustomModal },
                     { text: "儲存金鑰", class: "px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-black", onClick: () => {
                         const val = document.getElementById('modal-gemini-key-input')?.value.trim();
-                        if (val) {
-                            localStorage.setItem('gemini_api_key', val);
-                            showToast("✓ Gemini API Key 儲存成功！已啟用高精度雲端辨識。", "success");
-                        } else {
-                            localStorage.removeItem('gemini_api_key');
-                            showToast("已切換回 Tesseract.js 本地離線辨識。", "info");
-                        }
+                        if (val) { localStorage.setItem('gemini_api_key', val); showToast("✓ Gemini API Key 儲存成功！已啟用高精度雲端辨識。", "success"); } 
+                        else { localStorage.removeItem('gemini_api_key'); showToast("已切換回 Tesseract.js 本地離線辨識。", "info"); }
                         closeCustomModal();
                     }}
                 ]
@@ -3372,77 +2397,33 @@
         }
 
         const SUBSET_STORAGE_KEY = 'phonics_user_subsets_v1';
-        let userSubsets = {};
-        let currentDictionarySubsetId = '__ALL__';
-
-        const irregularLemmas = {
-            "went": "go", "ran": "run", "knives": "knife", "children": "child", "bought": "buy"
-        };
-
-        const protectedWordRoots = new Set([
-            'nothing', 'morning', 'evening', 'ceiling', 'king', 'ring', 'sing', 'wing', 'spring', 'string', 'thing', 
-            'building', 'meaning', 'during', 'bring', 'swing',
-            'tired', 'bored', 'excited', 'enraged', 'engaged', 'interested', 'scared', 'married', 'worried', 
-            'surprised', 'confused', 'closed', 'naked', 'wicked', 'detailed', 'complicated', 'advanced'
-        ]);
+        let userSubsets = {}; let currentDictionarySubsetId = '__ALL__';
+        const irregularLemmas = { "went": "go", "ran": "run", "knives": "knife", "children": "child", "bought": "buy" };
+        const protectedWordRoots = new Set(['nothing', 'morning', 'evening', 'ceiling', 'king', 'ring', 'sing', 'wing', 'spring', 'string', 'thing', 'building', 'meaning', 'during', 'bring', 'swing', 'tired', 'bored', 'excited', 'enraged', 'engaged', 'interested', 'scared', 'married', 'worried', 'surprised', 'confused', 'closed', 'naked', 'wicked', 'detailed', 'complicated', 'advanced']);
 
         function lemmatizeWord(raw) {
             const w = raw.toLowerCase().trim();
             if (w.length <= 3) return { root: w, original: w };
-            
             if (irregularLemmas[w]) return { root: irregularLemmas[w], original: w };
             if (protectedWordRoots.has(w)) return { root: w, original: w };
-
-            // 若該字本身在字庫中已被標記為獨立基礎詞性 (形容詞, 副詞等)
             if (customWordDatabase[w]) {
                 const pos = customWordDatabase[w].pos || "";
-                if (pos.includes('adjective') || pos.includes('adverb') || pos.includes('prep')) {
-                    return { root: w, original: w };
-                }
+                if (pos.includes('adjective') || pos.includes('adverb') || pos.includes('prep')) return { root: w, original: w };
             }
-
             const isValidRoot = (cand) => customWordDatabase[cand] ? cand : null;
-
-            if (w.endsWith("ies") && w.length > 4) {
-                const cand = w.slice(0, -3) + "y";
-                return { root: isValidRoot(cand) || cand, original: w }; 
-            }
-            if (w.endsWith("es") && w.length > 4) {
-                const cand1 = w.slice(0, -2);
-                const cand2 = w.slice(0, -1);
-                if (isValidRoot(cand1)) return { root: cand1, original: w };
-                if (isValidRoot(cand2)) return { root: cand2, original: w };
-            }
-            if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3) {
-                const cand = w.slice(0, -1);
-                if (isValidRoot(cand)) return { root: cand, original: w };
-                return { root: w, original: w };
-            }
-            
+            if (w.endsWith("ies") && w.length > 4) { const cand = w.slice(0, -3) + "y"; return { root: isValidRoot(cand) || cand, original: w }; }
+            if (w.endsWith("es") && w.length > 4) { const cand1 = w.slice(0, -2); const cand2 = w.slice(0, -1); if (isValidRoot(cand1)) return { root: cand1, original: w }; if (isValidRoot(cand2)) return { root: cand2, original: w }; }
+            if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3) { const cand = w.slice(0, -1); if (isValidRoot(cand)) return { root: cand, original: w }; return { root: w, original: w }; }
             if (w.endsWith("ing") && w.length > 4) {
-                const base = w.slice(0, -3);
-                const baseWithE = base + "e";
-                const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null;
-
-                if (isValidRoot(base)) return { root: base, original: w };
-                if (isValidRoot(baseWithE)) return { root: baseWithE, original: w };
-                if (baseDouble && isValidRoot(baseDouble)) return { root: baseDouble, original: w };
-
+                const base = w.slice(0, -3); const baseWithE = base + "e"; const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null;
+                if (isValidRoot(base)) return { root: base, original: w }; if (isValidRoot(baseWithE)) return { root: baseWithE, original: w }; if (baseDouble && isValidRoot(baseDouble)) return { root: baseDouble, original: w };
                 return { root: w, original: w };
             }
-
             if (w.endsWith("ed") && w.length > 3) {
-                const base = w.slice(0, -2);
-                const baseWithE = base + "e";
-                const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null;
-
-                if (isValidRoot(base)) return { root: base, original: w };
-                if (isValidRoot(baseWithE)) return { root: baseWithE, original: w };
-                if (baseDouble && isValidRoot(baseDouble)) return { root: baseDouble, original: w };
-
+                const base = w.slice(0, -2); const baseWithE = base + "e"; const baseDouble = (base.length > 2 && base[base.length-1] === base[base.length-2]) ? base.slice(0, -1) : null;
+                if (isValidRoot(base)) return { root: base, original: w }; if (isValidRoot(baseWithE)) return { root: baseWithE, original: w }; if (baseDouble && isValidRoot(baseDouble)) return { root: baseDouble, original: w };
                 return { root: w, original: w };
             }
-
             return { root: w, original: w };
         }
 
@@ -3452,12 +2433,9 @@
         function extractVocab() {
             let txt = document.getElementById('extract-input').value.toLowerCase();
             if (!txt.trim()) return;
-
             txt = txt.replace(/n['’]t\b/gi, ' not').replace(/['’]s\b/gi, '').replace(/[^a-z\s]/g, ' ');
             const shouldLemmatize = document.getElementById('chk-lemmatize')?.checked ?? true;
-            const words = txt.split(/\s+/);
-            const seenMap = new Map();
-
+            const words = txt.split(/\s+/); const seenMap = new Map();
             words.forEach(raw => {
                 const clean = raw.trim();
                 if (clean.length > 2 && !stopWordsSet.has(clean)) {
@@ -3465,23 +2443,16 @@
                     if (!seenMap.has(lem.root)) seenMap.set(lem.root, lem.original);
                 }
             });
-
             extractedItems = Array.from(seenMap.entries()).map(([root, original]) => ({ root, original, selected: true }));
             renderExtracted();
         }
 
         function renderExtracted() {
-            const grid = document.getElementById('extracted-grid');
-            const countBadge = document.getElementById('selected-count-badge');
+            const grid = document.getElementById('extracted-grid'); const countBadge = document.getElementById('selected-count-badge');
             if (!grid) return;
             const selectedCount = extractedItems.filter(i => i.selected).length;
             if (countBadge) countBadge.innerText = `已選 ${selectedCount} / ${extractedItems.length} 字`;
-
-            if (extractedItems.length === 0) {
-                grid.innerHTML = `<div class="text-slate-400 text-xs font-bold py-6 text-center w-full">未提取到生字，請點擊「🔍 提取生字」。</div>`;
-                return;
-            }
-
+            if (extractedItems.length === 0) { grid.innerHTML = `<div class="text-slate-400 text-xs font-bold py-6 text-center w-full">未提取到生字，請點擊「🔍 提取生字」。</div>`; return; }
             grid.innerHTML = extractedItems.map((item, idx) => `
                 <div onclick="toggleExtractedWord(${idx})" class="cursor-pointer px-3 py-1.5 rounded-xl border-2 transition-all flex items-center gap-1.5 ${item.selected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200'}">
                     <input type="checkbox" ${item.selected ? 'checked' : ''} class="w-3.5 h-3.5 rounded accent-blue-500">
@@ -3490,152 +2461,76 @@
             `).join('');
         }
 
-        function toggleExtractedWord(idx) {
-            if (extractedItems[idx]) {
-                extractedItems[idx].selected = !extractedItems[idx].selected;
-                renderExtracted();
-            }
-        }
-
-        function selectAllExtracted(select) {
-            extractedItems.forEach(i => i.selected = select);
-            renderExtracted();
-        }
-
-        function handleTargetSubsetChange(val) {
-            const input = document.getElementById('new-subset-name-input');
-            if (input) input.classList.toggle('hidden', val !== '__NEW__');
-        }
+        function toggleExtractedWord(idx) { if (extractedItems[idx]) { extractedItems[idx].selected = !extractedItems[idx].selected; renderExtracted(); } }
+        function selectAllExtracted(select) { extractedItems.forEach(i => i.selected = select); renderExtracted(); }
+        function handleTargetSubsetChange(val) { const input = document.getElementById('new-subset-name-input'); if (input) input.classList.toggle('hidden', val !== '__NEW__'); }
 
         function saveSelectedToSubset() {
             const selectedWords = extractedItems.filter(i => i.selected).map(i => i.root);
-            if (selectedWords.length === 0) {
-                showToast("請至少勾選一個生字！", "warning");
-                return;
-            }
-
-            const targetSelect = document.getElementById('extractor-subset-target');
-            const targetVal = targetSelect ? targetSelect.value : '__NEW__';
+            if (selectedWords.length === 0) { showToast("請至少勾選一個生字！", "warning"); return; }
+            const targetSelect = document.getElementById('extractor-subset-target'); const targetVal = targetSelect ? targetSelect.value : '__NEW__';
             let targetSubset = null;
-
             if (targetVal === '__NEW__') {
                 const nameInput = document.getElementById('new-subset-name-input');
                 let subsetName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : `課文清單 (${new Date().toLocaleDateString()})`;
-                const newId = 'sub_' + Date.now();
-                userSubsets[newId] = { id: newId, name: subsetName, words: [] };
-                targetSubset = userSubsets[newId];
-            } else {
-                targetSubset = userSubsets[targetVal];
-            }
-
-            selectedWords.forEach(w => {
-                if (!targetSubset.words.includes(w)) targetSubset.words.push(w);
-            });
-
-            saveSubsetsToStorage();
-            showToast(`已成功將 ${selectedWords.length} 個字存入「${targetSubset.name}」！`, "success");
-            selectNavTab('dictionary');
-            switchDictionarySubset(targetSubset.id);
+                const newId = 'sub_' + Date.now(); userSubsets[newId] = { id: newId, name: subsetName, words: [] }; targetSubset = userSubsets[newId];
+            } else { targetSubset = userSubsets[targetVal]; }
+            selectedWords.forEach(w => { if (!targetSubset.words.includes(w)) targetSubset.words.push(w); });
+            saveSubsetsToStorage(); showToast(`已成功將 ${selectedWords.length} 個字存入「${targetSubset.name}」！`, "success");
+            selectNavTab('dictionary'); switchDictionarySubset(targetSubset.id);
         }
 
-        function loadSubsetsFromStorage() {
-            try {
-                const saved = localStorage.getItem(SUBSET_STORAGE_KEY);
-                if (saved) userSubsets = JSON.parse(saved);
-            } catch(e){}
-            populateSubsetSelectors();
-        }
-
-        function saveSubsetsToStorage() {
-            try {
-                localStorage.setItem(SUBSET_STORAGE_KEY, JSON.stringify(userSubsets));
-            } catch(e){}
-            populateSubsetSelectors();
-        }
+        function loadSubsetsFromStorage() { try { const saved = localStorage.getItem(SUBSET_STORAGE_KEY); if (saved) userSubsets = JSON.parse(saved); } catch(e){} populateSubsetSelectors(); }
+        function saveSubsetsToStorage() { try { localStorage.setItem(SUBSET_STORAGE_KEY, JSON.stringify(userSubsets)); } catch(e){} populateSubsetSelectors(); }
 
         function populateSubsetSelectors() {
             const extractorSelect = document.getElementById('extractor-subset-target');
             if (extractorSelect) {
                 extractorSelect.innerHTML = '<option value="__NEW__">➕ 建立新清單 (New Subset)...</option>';
-                Object.values(userSubsets).forEach(sub => {
-                    extractorSelect.innerHTML += `<option value="${sub.id}">📁 ${sub.name} (${sub.words.length} 字)</option>`;
-                });
+                Object.values(userSubsets).forEach(sub => { extractorSelect.innerHTML += `<option value="${sub.id}">📁 ${sub.name} (${sub.words.length} 字)</option>`; });
             }
-
             const dictSelect = document.getElementById('dict-subset-selector');
             if (dictSelect) {
                 dictSelect.innerHTML = '<option value="__ALL__">🌐 全部核心詞庫 (All 3000 Words)</option>';
-                Object.values(userSubsets).forEach(sub => {
-                    dictSelect.innerHTML += `<option value="${sub.id}">📁 ${sub.name} (${sub.words.length} 字)</option>`;
-                });
+                Object.values(userSubsets).forEach(sub => { dictSelect.innerHTML += `<option value="${sub.id}">📁 ${sub.name} (${sub.words.length} 字)</option>`; });
             }
         }
 
-        function switchDictionarySubset(subId) {
-            currentDictionarySubsetId = subId;
-            const bar = document.getElementById('subset-actions-bar');
-            if (bar) bar.classList.toggle('hidden', subId === '__ALL__');
-            renderDictionary();
-        }
+        function switchDictionarySubset(subId) { currentDictionarySubsetId = subId; const bar = document.getElementById('subset-actions-bar'); if (bar) bar.classList.toggle('hidden', subId === '__ALL__'); renderDictionary(); }
 
         function renameCurrentSubset() {
-            const sub = userSubsets[currentDictionarySubsetId];
-            if (!sub) return;
+            const sub = userSubsets[currentDictionarySubsetId]; if (!sub) return;
             showCustomModal({
-                title: "✏️ 重新命名清單",
-                body: `<input type="text" id="modal-new-sub-name" value="${sub.name}" class="w-full p-2 border-2 border-slate-200 rounded-xl font-bold text-xs">`,
+                title: "✏️ 重新命名清單", body: `<input type="text" id="modal-new-sub-name" value="${sub.name}" class="w-full p-2 border-2 border-slate-200 rounded-xl font-bold text-xs">`,
                 actions: [
                     { text: "取消", class: "px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-bold", onClick: closeCustomModal },
-                    { text: "儲存", class: "px-4 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-black", onClick: () => {
-                        const val = document.getElementById('modal-new-sub-name')?.value.trim();
-                        if (val) { sub.name = val; saveSubsetsToStorage(); renderDictionary(); }
-                        closeCustomModal();
-                    }}
+                    { text: "儲存", class: "px-4 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-black", onClick: () => { const val = document.getElementById('modal-new-sub-name')?.value.trim(); if (val) { sub.name = val; saveSubsetsToStorage(); renderDictionary(); } closeCustomModal(); }}
                 ]
             });
         }
 
         function deleteCurrentSubset() {
-            const sub = userSubsets[currentDictionarySubsetId];
-            if (!sub) return;
+            const sub = userSubsets[currentDictionarySubsetId]; if (!sub) return;
             showCustomModal({
-                title: "🗑️ 刪除自訂清單",
-                body: `<p class="text-xs text-slate-600">確定刪除「${sub.name}」嗎？</p>`,
+                title: "🗑️ 刪除自訂清單", body: `<p class="text-xs text-slate-600">確定刪除「${sub.name}」嗎？</p>`,
                 actions: [
                     { text: "取消", class: "px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-bold", onClick: closeCustomModal },
-                    { text: "刪除", class: "px-4 py-1.5 bg-red-600 text-white rounded-xl text-xs font-black", onClick: () => {
-                        delete userSubsets[sub.id];
-                        saveSubsetsToStorage();
-                        switchDictionarySubset('__ALL__');
-                        closeCustomModal();
-                    }}
+                    { text: "刪除", class: "px-4 py-1.5 bg-red-600 text-white rounded-xl text-xs font-black", onClick: () => { delete userSubsets[sub.id]; saveSubsetsToStorage(); switchDictionarySubset('__ALL__'); closeCustomModal(); }}
                 ]
             });
         }
 
         function removeWordFromSubset(word) {
-             const sub = userSubsets[currentDictionarySubsetId];
-             if(!sub) return;
-             sub.words = sub.words.filter(w => w !== word);
-             saveSubsetsToStorage();
-             renderDictionary();
-             showToast(`已將 ${word} 從清單中移除`, 'info');
+             const sub = userSubsets[currentDictionarySubsetId]; if(!sub) return;
+             sub.words = sub.words.filter(w => w !== word); saveSubsetsToStorage(); renderDictionary(); showToast(`已將 ${word} 從清單中移除`, 'info');
         }
 
         function renderDictionary() {
-            const list = document.getElementById('dict-list');
-            const countBadge = document.getElementById('dict-count-badge');
+            const list = document.getElementById('dict-list'); const countBadge = document.getElementById('dict-count-badge');
             if (!list) return;
-
-            let words = Object.keys(customWordDatabase);
-            let isSubset = false;
-            if (currentDictionarySubsetId !== '__ALL__' && userSubsets[currentDictionarySubsetId]) {
-                words = userSubsets[currentDictionarySubsetId].words;
-                isSubset = true;
-            }
-
+            let words = Object.keys(customWordDatabase); let isSubset = false;
+            if (currentDictionarySubsetId !== '__ALL__' && userSubsets[currentDictionarySubsetId]) { words = userSubsets[currentDictionarySubsetId].words; isSubset = true; }
             if (countBadge) countBadge.innerText = `收錄: ${words.length} 字`;
-
             list.innerHTML = words.slice(0, 300).map(w => `
                 <div class="bg-slate-50 hover:bg-blue-50 border-2 border-slate-100 hover:border-blue-400 p-2.5 rounded-xl font-bold text-xs text-slate-700 transition-colors flex justify-between items-center group">
                     <span class="truncate cursor-pointer flex-1" onclick="quickInputWord('${w}'); selectNavTab('main');">${w}</span>
@@ -3649,14 +2544,8 @@
 
         function filterDictionary() {
             const q = document.getElementById('dict-search')?.value.toLowerCase().trim() || '';
-            let words = Object.keys(customWordDatabase);
-            let isSubset = false;
-            
-            if (currentDictionarySubsetId !== '__ALL__' && userSubsets[currentDictionarySubsetId]) {
-                words = userSubsets[currentDictionarySubsetId].words;
-                isSubset = true;
-            }
-            
+            let words = Object.keys(customWordDatabase); let isSubset = false;
+            if (currentDictionarySubsetId !== '__ALL__' && userSubsets[currentDictionarySubsetId]) { words = userSubsets[currentDictionarySubsetId].words; isSubset = true; }
             const filtered = words.filter(w => w.includes(q));
             const list = document.getElementById('dict-list');
             if (list) {
@@ -3681,107 +2570,91 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    // 改為讀取 2D 陣列 (以便抓取欄位 A 和欄位 B)
                     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     
                     Object.keys(customWordDatabase).forEach(k => delete customWordDatabase[k]);
                     
                     let count = 0;
-                    rows.forEach(r => {
-                        const wordCell = r?.find(c => typeof c === 'string' && /^[a-zA-Z]{2,20}$/.test(c.trim()));
-                        if (wordCell) {
+                    rows.forEach((r, idx) => {
+                        if (idx === 0) return; // 跳過標題列
+                        if (!r || r.length === 0) return;
+
+                        const wordCell = r[0];
+                        const ipaCell = r[1]; // 取出 B 欄的音標
+
+                        if (typeof wordCell === 'string' && /^[a-zA-Z\s\-']{2,25}$/.test(wordCell.trim())) {
                             const w = wordCell.trim().toLowerCase();
-                            if (!customWordDatabase[w]) {
-                                customWordDatabase[w] = decomposeWordAutomatically(w);
-                                count++;
+                            
+                            // 判斷 Excel 是否有提供 IPA，如果有，強制覆蓋猜測
+                            if (ipaCell && typeof ipaCell === 'string' && !ipaCell.includes('No IPA') && ipaCell.trim() !== '') {
+                                // 將 Excel 提供的音標清除多餘斜線，加上我們系統標準的斜線
+                                const cleanIpa = "/" + ipaCell.trim().replace(/\//g, '') + "/";
+                                customWordDatabase[w] = alignChunksToTargetIPA(w, cleanIpa);
+                            } else {
+                                // 如果 Excel 只有單字沒有音標，回退至系統自動估算
+                                if (!customWordDatabase[w]) {
+                                    customWordDatabase[w] = decomposeWordAutomatically(w);
+                                }
                             }
+                            count++;
                         }
                     });
+                    
+                    document.getElementById('recommended-words-bar').innerHTML = '<span class="shrink-0 text-slate-400">已套用自訂詞庫</span>';
                     renderDictionary();
-                    showToast(`✓ 成功匯入 ${count} 個生字！預設詞庫已清空。`, "success");
-                } catch(err){ showToast("Excel 解析失敗。", "error"); }
+                    showToast(`✓ 成功匯入 ${count} 個生字並套用專屬音標！預設詞庫已清空。`, "success");
+                } catch(err){ 
+                    console.error(err);
+                    showToast("Excel 解析失敗，請確保格式為 Word | IPA", "error"); 
+                }
             };
             reader.readAsArrayBuffer(file);
         }
 
         function downloadWordsJson() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customWordDatabase, null, 2));
-            const a = document.createElement('a');
-            a.setAttribute("href", dataStr);
-            a.setAttribute("download", "words.json");
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "words.json");
+            document.body.appendChild(a); a.click(); a.remove();
         }
 
         function showToast(message, type = "info") {
-            const container = document.getElementById('app-toast-container');
-            if (!container) return;
+            const container = document.getElementById('app-toast-container'); if (!container) return;
             const toast = document.createElement('div');
-            const bgClass = type === "success" ? "bg-emerald-600 text-white" :
-                            type === "warning" ? "bg-amber-600 text-white" :
-                            type === "error" ? "bg-red-600 text-white" : "bg-slate-800 text-white";
-
+            const bgClass = type === "success" ? "bg-emerald-600 text-white" : type === "warning" ? "bg-amber-600 text-white" : type === "error" ? "bg-red-600 text-white" : "bg-slate-800 text-white";
             toast.className = `${bgClass} pointer-events-auto px-4 py-2.5 rounded-2xl shadow-xl font-bold text-xs flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0`;
             toast.innerHTML = `<span>${type === 'success' ? '✓' : type === 'warning' ? '⚠️' : 'ℹ️'}</span><span>${message}</span>`;
             container.appendChild(toast);
             requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 320);
-            }, 3000);
+            setTimeout(() => { toast.classList.add('translate-y-2', 'opacity-0'); setTimeout(() => toast.remove(), 320); }, 3000);
         }
 
         function showCustomModal({ title, body, actions }) {
-            const modal = document.getElementById('custom-app-modal');
-            document.getElementById('modal-title').innerText = title || "提示";
-            document.getElementById('modal-body').innerHTML = body || "";
-            const acts = document.getElementById('modal-actions');
-            acts.innerHTML = "";
+            const modal = document.getElementById('custom-app-modal'); document.getElementById('modal-title').innerText = title || "提示";
+            document.getElementById('modal-body').innerHTML = body || ""; const acts = document.getElementById('modal-actions'); acts.innerHTML = "";
             (actions || []).forEach(act => {
-                const btn = document.createElement('button');
-                btn.className = act.class || "px-4 py-2 bg-slate-100 rounded-xl font-bold text-xs";
-                btn.innerText = act.text || "確定";
-                btn.onclick = act.onClick || closeCustomModal;
-                acts.appendChild(btn);
+                const btn = document.createElement('button'); btn.className = act.class || "px-4 py-2 bg-slate-100 rounded-xl font-bold text-xs";
+                btn.innerText = act.text || "確定"; btn.onclick = act.onClick || closeCustomModal; acts.appendChild(btn);
             });
             modal.classList.remove('hidden');
         }
 
-        function closeCustomModal() {
-            document.getElementById('custom-app-modal')?.classList.add('hidden');
-        }
+        function closeCustomModal() { document.getElementById('custom-app-modal')?.classList.add('hidden'); }
 
         function triggerDemoUserLogin() {
-            document.getElementById('user-display-name').innerText = "Sarah (VIP 家長會員)";
-            document.getElementById('user-email').innerText = "sarah.parent@gmail.com";
-            document.getElementById('user-tier-badge').innerText = "⭐ VIP 終身版";
-            document.getElementById('user-last-sync').innerText = "剛剛 (已完成雲端同步)";
+            document.getElementById('user-display-name').innerText = "Sarah (VIP 家長會員)"; document.getElementById('user-email').innerText = "sarah.parent@gmail.com";
+            document.getElementById('user-tier-badge').innerText = "⭐ VIP 終身版"; document.getElementById('user-last-sync').innerText = "剛剛 (已完成雲端同步)";
             showToast("✓ 會員登入成功！已同步雲端課文清單。", "success");
         }
 
         function exportSubsetsBackupFile() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userSubsets, null, 2));
-            const a = document.createElement('a');
-            a.setAttribute("href", dataStr);
-            a.setAttribute("download", "phonics_subsets_backup.json");
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "phonics_subsets_backup.json"); document.body.appendChild(a); a.click(); a.remove();
         }
 
         function importSubsetsBackupFile(ev) {
-            const file = ev.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    Object.assign(userSubsets, imported);
-                    saveSubsetsToStorage();
-                    renderDictionary();
-                    showToast("✓ 備份清單恢復成功！", "success");
-                } catch(err) { showToast("備份檔格式不符。", "error"); }
-            };
+            const file = ev.target.files[0]; if (!file) return; const reader = new FileReader();
+            reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); Object.assign(userSubsets, imported); saveSubsetsToStorage(); renderDictionary(); showToast("✓ 備份清單恢復成功！", "success"); } catch(err) { showToast("備份檔格式不符。", "error"); } };
             reader.readAsText(file);
         }
 
@@ -3798,6 +2671,7 @@
                         const parsed = JSON.parse(localSaved);
                         if (Object.keys(parsed).length > 5) {
                             Object.assign(customWordDatabase, parsed);
+                            document.getElementById('recommended-words-bar').innerHTML = '<span class="shrink-0 text-slate-400">已套用自訂詞庫</span>';
                         }
                     } catch (e) {}
                 }
@@ -3808,16 +2682,13 @@
                     if (remoteWords && typeof remoteWords === 'object') {
                         Object.keys(customWordDatabase).forEach(k => delete customWordDatabase[k]);
                         Object.assign(customWordDatabase, remoteWords);
-                        try {
-                            localStorage.setItem(WORDS_STORAGE_KEY, JSON.stringify(customWordDatabase));
-                        } catch (e) {}
+                        document.getElementById('recommended-words-bar').innerHTML = '<span class="shrink-0 text-slate-400">已套用自訂詞庫</span>';
+                        try { localStorage.setItem(WORDS_STORAGE_KEY, JSON.stringify(customWordDatabase)); } catch (e) {}
                         console.log(`✅ [成功] 完整載入遠端 words.json，共 ${Object.keys(remoteWords).length} 個詞彙！`);
                         showToast(`✓ 已成功載入 ${Object.keys(remoteWords).length} 核心字庫`, "success");
                     }
                 }
-            } catch (err) {
-                console.warn("⚠️ 載入 words.json 發生錯誤，使用預設庫。", err);
-            }
+            } catch (err) {}
 
             if (typeof renderDictionary === 'function') renderDictionary();
             if (typeof populateSubsetSelectors === 'function') populateSubsetSelectors();
@@ -3826,13 +2697,11 @@
 
         window.addEventListener('load', () => {
             loadSubsetsFromStorage();
-            loadDatabasePipeline(); 
-
+            loadDatabasePipeline();
             try {
                 const savedLang = localStorage.getItem('phonics_lang_pref') || 'zh_HK';
                 const savedTheme = localStorage.getItem('phonics_theme_pref') || 'default';
-                setLanguage(savedLang);
-                setTheme(savedTheme);
+                setLanguage(savedLang); setTheme(savedTheme);
             } catch (e) {}
         });
     </script>
