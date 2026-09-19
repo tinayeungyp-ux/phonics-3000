@@ -418,9 +418,9 @@
                     <div class="flex items-center justify-between bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
                         <span class="text-[11px] font-black text-slate-500 px-2" data-i18n="input_mode_label">輸入模式：</span>
                         <div class="flex gap-1 flex-1 justify-end">
-                            <button id="tab-input-tiles" onclick="switchActiveScrambleInputMode('tiles')" class="px-3 py-1.5 rounded-xl font-black text-xs bg-white text-blue-600 shadow-xs border border-slate-200">🔤 <span data-i18n="mode_tiles">點選字母</span></button>
-                            <button id="tab-input-handwriting" onclick="switchActiveScrambleInputMode('handwriting')" class="px-3 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900">✍️ <span data-i18n="mode_handwriting">手寫輸入</span></button>
-                            <button id="tab-input-keyboard" onclick="switchActiveScrambleInputMode('keyboard')" class="px-3 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900">⌨️ <span data-i18n="mode_keyboard">鍵盤鍵入</span></button>
+                            <button id="tab-input-tiles" onclick="switchActiveScrambleInputMode('tiles')" class="px-3 py-1.5 rounded-xl font-black text-xs bg-white text-blue-600 shadow-xs border border-slate-300 ring-2 ring-blue-500/20 transition-all">🔤 <span data-i18n="mode_tiles">點選字母</span></button>
+                            <button id="tab-input-handwriting" onclick="switchActiveScrambleInputMode('handwriting')" class="px-3 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 border border-transparent transition-all">✍️ <span data-i18n="mode_handwriting">手寫輸入</span></button>
+                            <button id="tab-input-keyboard" onclick="switchActiveScrambleInputMode('keyboard')" class="px-3 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 border border-transparent transition-all">⌨️ <span data-i18n="mode_keyboard">鍵盤鍵入</span></button>
                         </div>
                     </div>
 
@@ -907,6 +907,13 @@
                     { letters: "ny", onsetLet: "n", vowelLet: "y", codaLet: "", onset: "n", vowel: "i", coda: null }
                 ]
             },
+            "something": {
+                word: "something", ipa: "/ˈsʌm.θɪŋ/", pos: "pronoun", definition: "An unspecified or undetermined thing.", example: "There is something in the garden.",
+                chunks: [
+                    { letters: "some", onsetLet: "s", vowelLet: "o", codaLet: "m", onset: "s", vowel: "ʌ", coda: "m", silentTokens: [{ char: "e", note: "Magic e：結尾 e 不發音" }] },
+                    { letters: "thing", onsetLet: "th", vowelLet: "i", codaLet: "ng", onset: "θ", vowel: "ɪ", coda: "ŋ" }
+                ]
+            },
             "space": {
                 word: "space", ipa: "/speɪs/", pos: "noun", definition: "A continuous area or expanse which is unoccupied.",
                 chunks: [{ letters: "space", onsetLet: "sp", vowelLet: "a", codaLet: "c", onset: "sp", vowel: "eɪ", coda: "s", silentTokens: [{ char: "e", note: "Magic e" }] }]
@@ -1080,9 +1087,18 @@
                 rem = rem.slice(pVowel.length);
             }
             if (rem.length > 0) {
-                for (let c of rem) {
-                    if (explicitSilent.has(c.toLowerCase())) tokens.push({ char: c, type: "silent", note: explicitSilent.get(c.toLowerCase()) });
-                    else tokens.push({ char: c, type: "coda" });
+                // 智能 Magic E 辨析：若音節結尾為 e 且該 e 不在元音音素中，視為不發音 Magic E
+                const trailingE = rem.toLowerCase().endsWith('e') && !pVowel.toLowerCase().endsWith('e') && chunk.vowel !== 'i' && chunk.vowel !== 'iː' && chunk.vowel !== 'e';
+                for (let i = 0; i < rem.length; i++) {
+                    const c = rem[i];
+                    const isLastE = trailingE && i === rem.length - 1;
+                    if (explicitSilent.has(c.toLowerCase())) {
+                        tokens.push({ char: c, type: "silent", note: explicitSilent.get(c.toLowerCase()) });
+                    } else if (isLastE) {
+                        tokens.push({ char: c, type: "silent", note: "Magic e：不發音" });
+                    } else {
+                        tokens.push({ char: c, type: "coda" });
+                    }
                 }
             }
             return tokens;
@@ -1163,15 +1179,51 @@
             while ((match = vowelRegex.exec(workingWord)) !== null) {
                 vowelMatches.push({ text: match[0], start: match.index, end: match.index + match[0].length });
             }
-            if (vowelMatches.length < numChunks) {
-                const splits = []; let cur = 0;
-                for (let k = 0; k < numChunks - 1; k++) {
-                    let cut = cur + Math.max(1, Math.round((workingWord.length - cur) / (numChunks - k)));
-                    splits.push(workingWord.substring(cur, cut)); cur = cut;
+
+            // 輔音錨定映射矩陣：擴充 m, n, th 等高頻輔音
+            const ipaToLetter = {
+                'p': ['p', 'pp'], 'b': ['b', 'bb'], 't': ['t', 'tt'], 'd': ['d', 'dd'],
+                'k': ['k', 'c', 'ck', 'ch', 'q'], 'g': ['g', 'gg'],
+                'f': ['f', 'ff', 'ph'], 'v': ['v', 've'],
+                's': ['s', 'ss', 'c', 'sc', 'ce'], 'z': ['z', 'zz', 's', 'se'],
+                'ʃ': ['sh', 'ti', 'ci', 'si', 'ch', 's'], 'ʒ': ['s', 'si', 'ge'],
+                'tʃ': ['ch', 'tch', 't'], 'dʒ': ['j', 'g', 'dg', 'dge'],
+                'θ': ['th', 't'], 'ð': ['th', 't'],
+                'm': ['m', 'mm', 'me', 'mb', 'mn'],
+                'n': ['n', 'nn', 'ne', 'kn', 'gn'],
+                'ŋ': ['ng', 'n'],
+                'l': ['l', 'll', 'le'], 'r': ['r', 'rr', 're', 'wr'],
+                'w': ['w', 'wh', 'u'], 'j': ['y', 'i', 'u', 'j'],
+                'h': ['h', 'wh']
+            };
+
+            // 當元音數量與音節數量不一致（如 compound word 或含 Magic E 之 something, baseball）
+            if (vowelMatches.length !== numChunks) {
+                const splits = [];
+                let lastIdx = 0;
+                for (let k = 1; k < numChunks; k++) {
+                    const nextChunk = parsedIpaChunks[k];
+                    let cutPos = -1;
+                    if (nextChunk.onset) {
+                        const onsetKeys = ipaToLetter[nextChunk.onset] || [nextChunk.onset[0]];
+                        for (let cand of onsetKeys) {
+                            const found = workingWord.indexOf(cand, lastIdx + 1);
+                            if (found !== -1 && found < workingWord.length - 1) {
+                                cutPos = found;
+                                break;
+                            }
+                        }
+                    }
+                    if (cutPos === -1) {
+                        cutPos = lastIdx + Math.max(1, Math.round((workingWord.length - lastIdx) / (numChunks - k + 1)));
+                    }
+                    splits.push(workingWord.substring(lastIdx, cutPos));
+                    lastIdx = cutPos;
                 }
-                splits.push(workingWord.substring(cur));
+                splits.push(workingWord.substring(lastIdx));
                 return splits;
             }
+
             let lastCut = 0;
             const splits = [];
             for (let i = 0; i < numChunks - 1; i++) {
@@ -1187,18 +1239,11 @@
                     }
                     if (doubleCut !== -1) cutIndex = doubleCut;
                     else if (nextChunk.onset) {
-                        const nextOnsetChar = nextChunk.onset.charAt(0);
-                        const ipaToLetter = {
-                            'p': ['p'], 'b': ['b'], 't': ['t'], 'd': ['d'], 'k': ['k', 'c', 'q'], 'g': ['g'],
-                            'f': ['f', 'ph'], 'v': ['v'], 's': ['s', 'c'], 'z': ['z', 's'],
-                            'ʃ': ['s', 'c', 't', 'sh'], 'ʒ': ['s', 'z'], 'h': ['h'],
-                            'm': ['m'], 'n': ['n'], 'ŋ': ['n'], 'l': ['l'], 'r': ['r'],
-                            'w': ['w', 'u'], 'j': ['y', 'i', 'u'], 'θ': ['t', 'th'], 'ð': ['t', 'th']
-                        };
-                        const possible = ipaToLetter[nextOnsetChar] || [nextOnsetChar];
+                        const possible = ipaToLetter[nextChunk.onset] || [nextChunk.onset.charAt(0)];
                         let found = false;
                         for (let j = 0; j < consonants.length; j++) {
-                            if (possible.includes(consonants[j])) { cutIndex = curV.end + j; found = true; break; }
+                            const sub = consonants.substring(j);
+                            if (possible.some(p => sub.startsWith(p))) { cutIndex = curV.end + j; found = true; break; }
                         }
                         if (!found && consonants.length > 1) cutIndex = curV.end + 1;
                     } else { cutIndex = nextV.start; }
@@ -1605,15 +1650,19 @@
         }
         function switchActiveScrambleInputMode(m) {
             scrambleInputMode = m;
+            const activeClass = "px-3 py-1.5 rounded-xl font-black text-xs bg-white text-blue-600 shadow-xs border border-slate-300 ring-2 ring-blue-500/20 transition-all";
+            const inactiveClass = "px-3 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 border border-transparent transition-all";
+
             ['tiles', 'handwriting', 'keyboard'].forEach(x => {
-                document.getElementById(`tab-input-${x}`)?.classList.toggle('bg-white', x === m);
-                document.getElementById(`tab-input-${x}`)?.classList.toggle('text-blue-600', x === m);
+                const tabBtn = document.getElementById(`tab-input-${x}`);
+                if (tabBtn) tabBtn.className = (x === m) ? activeClass : inactiveClass;
                 document.getElementById(`panel-input-${x}`)?.classList.toggle('hidden', x !== m);
             });
             if (m === 'handwriting') setTimeout(() => { setupHandwritingCanvas(); updateHandwritingStatus(); }, 50);
             else if (m === 'keyboard') document.getElementById('scramble-hidden-keyboard-input')?.focus();
             renderScrambleSlots();
         }
+
         function typeLetterByKeyboard(char) {
             if (!/^[a-z]$/i.test(char)) return;
             const letter = char.toLowerCase();
@@ -1675,22 +1724,75 @@
                     if (r?.data?.text) recognized = r.data.text.trim().toLowerCase().replace(/[^a-z]/g, '');
                 }
             } catch (err) {} finally { document.getElementById('ocr-btn-spinner')?.classList.add('hidden'); }
-            const letters = recognized.split('');
-            const targetStart = targetLetterSlots.findIndex(s => s === null);
-            if (letters.length) {
-                let wIdx = targetStart !== -1 ? targetStart : 0;
-                letters.forEach(c => {
-                    while (wIdx < targetLetterSlots.length && targetLetterSlots[wIdx] !== null) wIdx++;
-                    if (wIdx < targetLetterSlots.length) {
-                        let m = availableTiles.find(t => t.letter.toLowerCase() === c.toLowerCase() && !t.isUsed);
-                        if (m) m.isUsed = true;
-                        targetLetterSlots[wIdx] = { tileId: m ? m.id : `hw_${Date.now()}_${wIdx}`, letter: c }; wIdx++;
-                    }
-                });
-                renderScrambleSlots(); renderScrambleTiles(); clearHandwritingCanvas(); showToast(`✓ 已填入: ${recognized.toUpperCase()}`, "success");
-                if (!targetLetterSlots.includes(null)) setTimeout(checkScrambleAnswer, 300);
-            } else showToast("未能辨識出字母，請寫清楚一點重試。", "warning");
+
+            // 辨識完成後彈出確認視窗供輸入者確認/微調
+            showHandwritingOcrConfirmModal(recognized, dataUrl);
         }
+
+        function showHandwritingOcrConfirmModal(recognizedText, dataUrl) {
+            const cleaned = (recognizedText || "").trim().toLowerCase().replace(/[^a-z]/g, '');
+            const firstEmptyIdx = targetLetterSlots.findIndex(s => s === null);
+            const startIdx = firstEmptyIdx !== -1 ? firstEmptyIdx : 0;
+
+            showCustomModal({
+                title: "✍️ 確認手寫辨識結果",
+                body: `
+                    <div class="space-y-3 text-center">
+                        <div class="p-2 bg-slate-50 rounded-xl border border-slate-200 flex justify-center">
+                            <img src="${dataUrl}" class="max-h-24 object-contain rounded-lg">
+                        </div>
+                        <div class="text-left space-y-1">
+                            <label class="text-xs font-black text-slate-700 block">系統辨識文字 (如有少許偏差可直接修改)：</label>
+                            <input type="text" id="ocr-confirm-input" value="${cleaned}" class="w-full text-center font-black text-2xl uppercase tracking-widest py-2 border-2 border-indigo-400 rounded-xl bg-indigo-50/40 focus:bg-white focus:outline-none" placeholder="輸入字母">
+                        </div>
+                        <div class="text-[11px] font-bold text-slate-400 text-left">
+                            💡 點選「確認填入」將接續從第 ${startIdx + 1} 格起填入。
+                        </div>
+                    </div>
+                `,
+                actions: [
+                    {
+                        text: "🧹 清空重寫",
+                        class: "px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs",
+                        onClick: () => { clearHandwritingCanvas(); closeCustomModal(); }
+                    },
+                    {
+                        text: "✓ 確認填入空格",
+                        class: "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-xs",
+                        onClick: () => {
+                            const inputVal = document.getElementById('ocr-confirm-input')?.value.trim().toLowerCase().replace(/[^a-z]/g, '') || '';
+                            if (!inputVal) {
+                                showToast("請確認至少一個有效字母！", "warning");
+                                return;
+                            }
+                            applyHandwrittenLettersToSlots(inputVal.split(''), startIdx);
+                            clearHandwritingCanvas();
+                            closeCustomModal();
+                            showToast(`✓ 已填入: ${inputVal.toUpperCase()}`, "success");
+                        }
+                    }
+                ]
+            });
+        }
+
+        function applyHandwrittenLettersToSlots(letters, startSlotIdx) {
+            let wIdx = startSlotIdx;
+            letters.forEach(c => {
+                while (wIdx < targetLetterSlots.length && targetLetterSlots[wIdx] !== null) wIdx++;
+                if (wIdx < targetLetterSlots.length) {
+                    let m = availableTiles.find(t => t.letter.toLowerCase() === c.toLowerCase() && !t.isUsed);
+                    if (m) m.isUsed = true;
+                    targetLetterSlots[wIdx] = { tileId: m ? m.id : `hw_${Date.now()}_${wIdx}`, letter: c };
+                    wIdx++;
+                }
+            });
+            currentActiveSlotIdx = Math.min(targetLetterSlots.length - 1, wIdx);
+            renderScrambleSlots();
+            renderScrambleTiles();
+            updateHandwritingStatus();
+            if (!targetLetterSlots.includes(null)) setTimeout(checkScrambleAnswer, 300);
+        }
+
         function openApiKeyModal() {
             showCustomModal({
                 title: "⚙️ AI 手寫辨識設定",
