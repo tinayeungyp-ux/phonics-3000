@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
+    <!-- 防瀏覽器激進緩存標頭：確保每次 Launch 都即時讀取最新版代碼 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Phonics 3000</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -164,7 +168,11 @@
                 </div>
             </div>
         </div>
-        <div class="pt-3 border-t border-slate-100 text-center text-[11px] font-bold text-slate-400">Phonics 3000 · Science of Reading</div>
+        <!-- 系統最新版本與確認標籤 -->
+        <div class="pt-3 border-t border-slate-100 text-center space-y-0.5">
+            <div class="text-[11px] font-black text-indigo-600">v4.6.0 · OCR Confirm Active ✓</div>
+            <div class="text-[10px] font-bold text-slate-400">Phonics 3000 · Science of Reading</div>
+        </div>
     </aside>
 
     <main class="flex-1 overflow-auto p-3.5 sm:p-6 md:p-8">
@@ -187,6 +195,7 @@
                         <button onclick="quickInputWord('curious')" class="px-2 py-0.5 bg-slate-100 hover:bg-blue-50 rounded shrink-0">curious</button>
                         <button onclick="quickInputWord('knowledge')" class="px-2 py-0.5 bg-slate-100 hover:bg-blue-50 rounded shrink-0">knowledge</button>
                         <button onclick="quickInputWord('accompany')" class="px-2 py-0.5 bg-slate-100 hover:bg-blue-50 rounded shrink-0">accompany</button>
+                        <button onclick="quickInputWord('something')" class="px-2 py-0.5 bg-slate-100 hover:bg-blue-50 rounded shrink-0">something</button>
                         <button onclick="quickInputWord('space')" class="px-2 py-0.5 bg-slate-100 hover:bg-blue-50 rounded shrink-0">space</button>
                         <button onclick="quickInputWord('knife')" class="px-2 py-0.5 bg-slate-100 hover:bg-blue-50 rounded shrink-0">knife</button>
                         <button onclick="quickInputWord('climb')" class="px-2 py-0.5 bg-slate-100 hover:bg-blue-50 rounded shrink-0">climb</button>
@@ -415,6 +424,7 @@
                         </div>
                     </div>
 
+                    <!-- 三大輸入模式導航條 (樣式框選完美切換) -->
                     <div class="flex items-center justify-between bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
                         <span class="text-[11px] font-black text-slate-500 px-2" data-i18n="input_mode_label">輸入模式：</span>
                         <div class="flex gap-1 flex-1 justify-end">
@@ -1087,7 +1097,6 @@
                 rem = rem.slice(pVowel.length);
             }
             if (rem.length > 0) {
-                // 智能 Magic E 辨析：若音節結尾為 e 且該 e 不在元音音素中，視為不發音 Magic E
                 const trailingE = rem.toLowerCase().endsWith('e') && !pVowel.toLowerCase().endsWith('e') && chunk.vowel !== 'i' && chunk.vowel !== 'iː' && chunk.vowel !== 'e';
                 for (let i = 0; i < rem.length; i++) {
                     const c = rem[i];
@@ -1180,7 +1189,6 @@
                 vowelMatches.push({ text: match[0], start: match.index, end: match.index + match[0].length });
             }
 
-            // 輔音錨定映射矩陣：擴充 m, n, th 等高頻輔音
             const ipaToLetter = {
                 'p': ['p', 'pp'], 'b': ['b', 'bb'], 't': ['t', 'tt'], 'd': ['d', 'dd'],
                 'k': ['k', 'c', 'ck', 'ch', 'q'], 'g': ['g', 'gg'],
@@ -1197,7 +1205,6 @@
                 'h': ['h', 'wh']
             };
 
-            // 當元音數量與音節數量不一致（如 compound word 或含 Magic E 之 something, baseball）
             if (vowelMatches.length !== numChunks) {
                 const splits = [];
                 let lastIdx = 0;
@@ -1690,6 +1697,7 @@
             else if (e.key === 'Enter') { e.preventDefault(); checkScrambleAnswer(); }
             else if (/^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); typeLetterByKeyboard(e.key); }
         });
+
         function setupHandwritingCanvas() {
             hwCanvas = document.getElementById('scramble-handwriting-canvas'); if (!hwCanvas) return;
             const wrapper = document.getElementById('handwriting-canvas-wrapper');
@@ -1703,8 +1711,13 @@
             hwCanvas.onpointerup = end; hwCanvas.onpointercancel = end;
         }
         function clearHandwritingCanvas() { if (hwCanvas && hwCtx) hwCtx.clearRect(0, 0, hwCanvas.width, hwCanvas.height); hwStrokes = 0; }
+
         async function recognizeHandwriting() {
+            const ocrBtn = document.getElementById('btn-handwriting-ocr');
             if (!hwCanvas || hwStrokes === 0) return showToast("請先在四線格內手寫英文字母！", "warning");
+            
+            // 防重複點擊
+            if (ocrBtn) ocrBtn.disabled = true;
             document.getElementById('ocr-btn-spinner')?.classList.remove('hidden');
             const off = document.createElement('canvas'); off.width = hwCanvas.width; off.height = hwCanvas.height;
             const ctx = off.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, off.width, off.height); ctx.drawImage(hwCanvas, 0, 0);
@@ -1723,9 +1736,12 @@
                     const r = await Tesseract.recognize(off, 'eng');
                     if (r?.data?.text) recognized = r.data.text.trim().toLowerCase().replace(/[^a-z]/g, '');
                 }
-            } catch (err) {} finally { document.getElementById('ocr-btn-spinner')?.classList.add('hidden'); }
+            } catch (err) {} finally { 
+                document.getElementById('ocr-btn-spinner')?.classList.add('hidden');
+                if (ocrBtn) ocrBtn.disabled = false;
+            }
 
-            // 辨識完成後彈出確認視窗供輸入者確認/微調
+            // 辨識完成後【一律彈出確認視窗】，嚴禁未經確認直接填入空格
             showHandwritingOcrConfirmModal(recognized, dataUrl);
         }
 
@@ -1855,7 +1871,6 @@
                 let recognizedText = "";
                 const geminiKey = localStorage.getItem('gemini_api_key');
                 
-                // 優先使用已配置的 Gemini Vision API（秒級高精度）
                 if (geminiKey) {
                     if (statusMsg) statusMsg.innerText = '正在調用 AI 辨識課文...';
                     const base64 = await new Promise((resolve, reject) => {
@@ -1885,7 +1900,6 @@
                     }
                 }
 
-                // 本機 Tesseract.js 離線備援
                 if (!recognizedText && window.Tesseract) {
                     if (statusMsg) statusMsg.innerText = '正在使用本機 Tesseract 辨識課文 (請稍候)...';
                     const result = await Tesseract.recognize(file, 'eng');
@@ -1934,7 +1948,7 @@
                     selected: true,
                     inDb,
                     ipa: inDb ? customWordDatabase[root].ipa : '',
-                    source: inDb ? 'builtin' : 'pending' // 'builtin' | 'api' | 'fallback' | 'pending'
+                    source: inDb ? 'builtin' : 'pending'
                 };
             });
 
@@ -1946,7 +1960,6 @@
             const pendingList = extractedItems.filter(i => !i.inDb && i.source === 'pending');
             if (pendingList.length === 0) return;
 
-            // 限制併發量至 4，避免 API 限流
             const batchSize = 4;
             for (let i = 0; i < pendingList.length; i += batchSize) {
                 const batch = pendingList.slice(i, i + batchSize);
@@ -1970,7 +1983,6 @@
                         }
                     } catch (e) {}
 
-                    // 線上 API 缺失或失敗時，平滑調用 Fallback 規則估算引擎
                     const fb = decomposeWordAutomatically(item.root);
                     item.ipa = fb.ipa;
                     item.source = 'fallback';
@@ -2013,7 +2025,6 @@
 
             grid.innerHTML = extractedItems.map((item, idx) => {
                 const isSelected = item.selected;
-                // 雙色設計：核心庫（翡翠綠） vs 庫外生字（暖琥珀）
                 let cardStyle = "";
                 let tagHtml = "";
                 
