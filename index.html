@@ -35,7 +35,7 @@
         .title-shrink { font-size: 1.25rem !important; }
 
         /* ==========================================================================
-           ACCESSIBILITY (a11y) & THEME ENGINE - 純 CSS 控制，0 JS 重複代碼
+           ACCESSIBILITY (a11y) & THEME ENGINE - 純 CSS 控制
            ========================================================================== */
         .phonics-token { display: inline-block; transition: all 0.15s ease; }
         .phonics-vowel { font-weight: 900; }
@@ -116,9 +116,7 @@
         .scramble-box-slot.active-slot { border-color: #2563eb !important; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35); transform: translateY(-2px); }
         .scramble-box-tile { width: clamp(34px, 7.5vw, 44px); height: clamp(44px, 9.5vw, 52px); transition: all 0.12s ease-out; }
         .scramble-box-tile:active { transform: scale(0.93); }
-        .scramble-key-btn {
-            width: clamp(26px, 7.5vw, 36px); height: clamp(34px, 8.5vw, 42px); background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 800; font-size: clamp(12px, 3.2vw, 15px); color: #334155; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.08s ease;
-        }
+        .scramble-key-btn { width: clamp(26px, 7.5vw, 36px); height: clamp(34px, 8.5vw, 42px); background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 800; font-size: clamp(12px, 3.2vw, 15px); color: #334155; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.08s ease; }
         .scramble-key-btn:active { background-color: #e2e8f0; transform: translateY(1px); }
 
         .four-line-grid {
@@ -141,7 +139,7 @@
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col antialiased select-none" data-theme="default">
 
-    <!-- Header (新增滾動縮放動畫，精簡導航文字) -->
+    <!-- Header -->
     <header id="main-header" class="bg-white shadow-xs border-b-2 border-slate-200 px-4 py-2.5 shrink-0 z-30 sticky top-0">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <div id="app-title" class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 cursor-pointer transition-all duration-300" onclick="selectNavTab('main')">
@@ -149,7 +147,6 @@
             </div>
             
             <div class="flex items-center gap-2">
-                <!-- 導航標籤只保留 Icon，節省頂部空間 -->
                 <span id="nav-active-label" class="text-base bg-blue-50 text-blue-600 px-2.5 py-1 rounded-xl flex items-center justify-center">
                     🏠
                 </span>
@@ -1532,6 +1529,14 @@
             }
         }
 
+        const validOnsetClusters = [
+            "bl", "cl", "fl", "gl", "pl", "sl",
+            "br", "cr", "dr", "fr", "gr", "pr", "tr",
+            "sc", "sk", "sm", "sn", "sp", "st", "sw",
+            "spl", "spr", "str", "scr", "skr", "squ",
+            "ch", "sh", "th", "ph", "wh"
+        ];
+
         function decomposeWordAutomatically(rawWord) {
             const word = rawWord.toLowerCase().trim();
             if (customWordDatabase[word]) return customWordDatabase[word];
@@ -1553,13 +1558,15 @@
                 const consonantsBetween = word.slice(nuclei[i].end, nuclei[i + 1].start);
                 let splitPoint = nuclei[i].end;
 
-                if (consonantsBetween.length <= 1) splitPoint = nuclei[i].end;
-                else {
+                if (consonantsBetween.length <= 1) {
+                    splitPoint = nuclei[i].end;
+                } else {
                     let matchedCluster = false;
-                    for (const cluster of ["bl", "cl", "fl", "gl", "pl", "sl", "br", "cr", "dr", "fr", "gr", "pr", "tr", "sc", "sk", "sm", "sn", "sp", "st", "sw", "spl", "spr", "str", "scr", "skr", "squ", "ch", "sh", "th", "ph", "wh"]) {
+                    for (const cluster of validOnsetClusters) {
                         if (consonantsBetween.endsWith(cluster)) {
                             splitPoint = nuclei[i].end + (consonantsBetween.length - cluster.length);
-                            matchedCluster = true; break;
+                            matchedCluster = true;
+                            break;
                         }
                     }
                     if (!matchedCluster) splitPoint = nuclei[i].end + 1;
@@ -1576,22 +1583,36 @@
             const chunks = syllables.map((syl, idx) => {
                 let onsetLet = "", vowelLet = syl, codaLet = "";
                 const m = syl.match(/^([^aeiouy]*)([aeiouy]+(?:[aeiouy]+)?)(.*)$/i);
-                if (m) { onsetLet = m[1]; vowelLet = m[2]; codaLet = m[3]; }
+                if (m) {
+                    onsetLet = m[1];
+                    vowelLet = m[2];
+                    codaLet = m[3];
+                }
                 return mapPhonicsParts(syl, onsetLet, vowelLet, codaLet, idx, syllables.length);
             });
 
-            return { word: word, ipa: "/" + chunks.map(c => (c.onset || '') + c.vowel + (c.coda || '')).join(".") + "/", chunks: chunks };
+            return {
+                word: word,
+                ipa: "/" + chunks.map(c => (c.onset || '') + c.vowel + (c.coda || '')).join(".") + "/",
+                chunks: chunks
+            };
         }
 
         function createSingleChunkResult(word, onsetLet, vowelLet, codaLet) {
             const chunk = mapPhonicsParts(word, onsetLet, vowelLet, codaLet, 0, 1);
-            return { word: word, ipa: `/${(chunk.onset || '')}${chunk.vowel}${(chunk.coda || '')}/`, chunks: [chunk] };
+            return {
+                word: word,
+                ipa: `/${(chunk.onset || '')}${chunk.vowel}${(chunk.coda || '')}/`,
+                chunks: [chunk]
+            };
         }
 
         function mapPhonicsParts(syl, onsetLet, vowelLet, codaLet, idx, totalSyls) {
             let onset = null, vowel = "æ", coda = null;
 
-            if (syl.includes("tion")) return { letters: syl, onsetLet: "t", vowelLet: "io", codaLet: "n", onset: "ʃ", vowel: "ə", coda: "n" };
+            if (syl.includes("tion")) {
+                return { letters: syl, onsetLet: "t", vowelLet: "io", codaLet: "n", onset: "ʃ", vowel: "ə", coda: "n" };
+            }
 
             if (/aw|au/i.test(vowelLet)) vowel = "ɔː";
             else if (/ee|ea/i.test(vowelLet)) vowel = "iː";
@@ -1610,8 +1631,17 @@
             else if (/u/i.test(vowelLet)) vowel = "ʌ";
             else if (/y/i.test(vowelLet)) vowel = (idx === totalSyls - 1) ? "i" : "aɪ";
 
-            if (onsetLet.length > 0) onset = onsetLet.toLowerCase().replace(/sh/g, 'ʃ').replace(/ch/g, 'tʃ').replace(/th/g, 'θ').replace(/ph/g, 'f').replace(/c(?=[eiy])/g, 's').replace(/c/g, 'k').replace(/qu/g, 'kw');
-            if (codaLet.length > 0) coda = codaLet.toLowerCase().replace(/sh/g, 'ʃ').replace(/ch/g, 'tʃ').replace(/th/g, 'θ').replace(/ck/g, 'k').replace(/ng/g, 'ŋ').replace(/c/g, 'k');
+            if (onsetLet.length > 0) {
+                onset = onsetLet.toLowerCase()
+                    .replace(/sh/g, 'ʃ').replace(/ch/g, 'tʃ').replace(/th/g, 'θ').replace(/ph/g, 'f')
+                    .replace(/c(?=[eiy])/g, 's').replace(/c/g, 'k').replace(/qu/g, 'kw');
+            }
+
+            if (codaLet.length > 0) {
+                coda = codaLet.toLowerCase()
+                    .replace(/sh/g, 'ʃ').replace(/ch/g, 'tʃ').replace(/th/g, 'θ').replace(/ck/g, 'k')
+                    .replace(/ng/g, 'ŋ').replace(/c/g, 'k');
+            }
 
             return { letters: syl, onsetLet, vowelLet, codaLet, onset, vowel, coda };
         }
@@ -1627,7 +1657,9 @@
                 vowelMatches.push({ vowel: vm[0], start: vm.index, end: vm.index + vm[0].length });
             }
 
-            if (vowelMatches.length <= 1) return alignSingleSyllable(rawWord, targetIpa, vowelMatches[0], ipaStr);
+            if (vowelMatches.length <= 1) {
+                return alignSingleSyllable(rawWord, targetIpa, vowelMatches[0], ipaStr);
+            }
 
             const ipaSlices = [];
             let prevCutIdx = 0;
@@ -1639,11 +1671,13 @@
 
                 let cutOffset = -1;
                 const markMatch = interSegment.match(/[\.ˈˌ']/);
-                if (markMatch && markMatch.index !== undefined) cutOffset = curV.end + markMatch.index;
-                else {
+                if (markMatch && markMatch.index !== undefined) {
+                    cutOffset = curV.end + markMatch.index;
+                } else {
                     const consonants = interSegment.replace(/[\s]/g, '');
                     cutOffset = (consonants.length <= 1) ? curV.end : curV.end + 1;
                 }
+
                 ipaSlices.push(ipaStr.substring(prevCutIdx, cutOffset));
                 prevCutIdx = cutOffset;
             }
@@ -1667,37 +1701,144 @@
                 let onsetLet = "", vowelLet = sylLetters, codaLet = "";
 
                 const m = sylLetters.match(/^([^aeiouy]*)([aeiouy]+(?:[aeiouy]+)?)(.*)$/i);
-                if (m) { onsetLet = m[1]; vowelLet = m[2]; codaLet = m[3]; }
+                if (m) {
+                    onsetLet = m[1];
+                    vowelLet = m[2];
+                    codaLet = m[3];
+                }
 
-                return { letters: sylLetters, onsetLet, vowelLet, codaLet, onset: c.onset, vowel: c.vowel, coda: c.coda };
+                return {
+                    letters: sylLetters,
+                    onsetLet,
+                    vowelLet,
+                    codaLet,
+                    onset: c.onset,
+                    vowel: c.vowel,
+                    coda: c.coda
+                };
             });
 
-            return { word: rawWord, ipa: targetIpa, chunks: chunks };
+            return {
+                word: rawWord,
+                ipa: targetIpa,
+                chunks: chunks
+            };
         }
 
+        // =========================================================================
+        // 【核心修正】: 輔音錨定演算法 (Consonant Anchoring Algorithm)
+        // 解決 `ambulance` 等多音節字分割不准確問題
+        // =========================================================================
         function alignLettersToIpaChunks(word, parsedIpaChunks) {
             const numChunks = parsedIpaChunks.length;
             if (numChunks === 1) return [word];
 
             let workingWord = word.toLowerCase().trim();
-            const splitPoints = [];
-            let curSearchIdx = 0;
+            const splits = [];
 
-            for (let k = 0; k < numChunks - 1; k++) {
-                const approxLen = Math.max(1, Math.round((workingWord.length - curSearchIdx) / (numChunks - k)));
-                let cut = curSearchIdx + approxLen;
-                splitPoints.push(cut);
-                curSearchIdx = cut;
+            // 1. 搵出所有響音 (a, e, i, o, u, y) 嘅群組位置
+            const vowelRegex = /[aeiouy]+/gi;
+            const vowelMatches = [];
+            let match;
+            while ((match = vowelRegex.exec(workingWord)) !== null) {
+                vowelMatches.push({ text: match[0], start: match.index, end: match.index + match[0].length });
             }
 
-            const letterSplits = [];
-            let prev = 0;
-            for (const sp of splitPoints) {
-                letterSplits.push(workingWord.substring(prev, sp));
-                prev = sp;
+            // 防呆保護：如果搵到嘅響音數量少過要分嘅音節，退回舊式盲切
+            if (vowelMatches.length < numChunks) {
+                const splitPoints = [];
+                let curSearchIdx = 0;
+                for (let k = 0; k < numChunks - 1; k++) {
+                    const approxLen = Math.max(1, Math.round((workingWord.length - curSearchIdx) / (numChunks - k)));
+                    let cut = curSearchIdx + approxLen;
+                    splitPoints.push(cut);
+                    curSearchIdx = cut;
+                }
+                const letterSplits = [];
+                let prev = 0;
+                for (const sp of splitPoints) {
+                    letterSplits.push(workingWord.substring(prev, sp));
+                    prev = sp;
+                }
+                letterSplits.push(workingWord.substring(prev));
+                return letterSplits;
             }
-            letterSplits.push(workingWord.substring(prev));
-            return letterSplits;
+
+            let lastCut = 0;
+            
+            for (let i = 0; i < numChunks - 1; i++) {
+                const currentVowel = vowelMatches[i];
+                const nextVowel = vowelMatches[i + 1];
+                const nextChunk = parsedIpaChunks[i + 1];
+                
+                let nextOnsetIpaChar = nextChunk.onset ? nextChunk.onset.charAt(0) : null;
+                let cutIndex = currentVowel.end;
+                
+                const consonantsBetween = workingWord.substring(currentVowel.end, nextVowel.start);
+                
+                if (consonantsBetween.length > 0) {
+                    // 規則 1：雙輔音從中間切開 (例如 accompany -> ac-com-pa-ny)
+                    let doubleConsonantCut = -1;
+                    for (let j = 0; j < consonantsBetween.length - 1; j++) {
+                        if (consonantsBetween[j] === consonantsBetween[j+1]) {
+                            doubleConsonantCut = currentVowel.end + j + 1;
+                            break;
+                        }
+                    }
+
+                    if (doubleConsonantCut !== -1) {
+                        cutIndex = doubleConsonantCut;
+                    } 
+                    // 規則 2：輔音錨定映射 (Consonant Anchoring)
+                    else if (nextOnsetIpaChar) {
+                        // 建立 IPA 發音 -> 英文字母 的可能對應表
+                        const ipaToLetter = {
+                            'p': ['p'], 'b': ['b'], 't': ['t'], 'd': ['d'], 'k': ['k', 'c', 'q'], 'g': ['g'],
+                            'f': ['f', 'p'], 'v': ['v'], 's': ['s', 'c'], 'z': ['z', 's'],
+                            'ʃ': ['s', 'c', 't'], 'ʒ': ['s', 'z'], 'h': ['h'],
+                            'm': ['m'], 'n': ['n'], 'ŋ': ['n'], 'l': ['l'], 'r': ['r'],
+                            'w': ['w', 'u'], 'j': ['y', 'i', 'u'], 'θ': ['t'], 'ð': ['t']
+                        };
+                        const possibleLetters = ipaToLetter[nextOnsetIpaChar] || [nextOnsetIpaChar];
+                        
+                        let foundCut = false;
+                        for (let j = 0; j < consonantsBetween.length; j++) {
+                            const char = consonantsBetween[j];
+                            if (possibleLetters.includes(char)) {
+                                cutIndex = currentVowel.end + j; // 定位到切分點！
+                                foundCut = true;
+                                break;
+                            }
+                        }
+                        
+                        // Fallback 叢集切分
+                        if (!foundCut && consonantsBetween.length > 1) {
+                             let matchedCluster = false;
+                             for (const cluster of ["bl", "cl", "fl", "gl", "pl", "sl", "br", "cr", "dr", "fr", "gr", "pr", "tr", "sc", "sk", "sm", "sn", "sp", "st", "sw", "ch", "sh", "th", "ph", "wh"]) {
+                                 if (consonantsBetween.endsWith(cluster)) {
+                                     cutIndex = currentVowel.end + (consonantsBetween.length - cluster.length);
+                                     matchedCluster = true; break;
+                                 }
+                             }
+                             if (!matchedCluster) cutIndex = currentVowel.end + 1; 
+                        }
+                    } else {
+                        // 如下個音節無頭音 (Onset)，中間所有輔音歸當前音節尾音
+                        cutIndex = nextVowel.start; 
+                    }
+                }
+                
+                // 防呆：確保唔會切錯位或超出長度
+                if (cutIndex <= lastCut) cutIndex = lastCut + 1;
+                if (cutIndex >= workingWord.length) cutIndex = workingWord.length - 1;
+                
+                splits.push(workingWord.substring(lastCut, cutIndex));
+                lastCut = cutIndex;
+            }
+            
+            // 將剩餘嘅字母放入最後一個音節
+            splits.push(workingWord.substring(lastCut));
+            return splits;
         }
 
         function alignSingleSyllable(rawWord, targetIpa, vMatchObj, cleanIpa) {
@@ -1709,29 +1850,52 @@
             let onsetLet = "", vowelLet = word, codaLet = "";
             const silentTokens = [];
 
-            if (word.startsWith("kn") && cOnset === "n") { silentTokens.push({ char: "k", note: "kn- 組合：k 不發音" }); onsetLet = "n"; }
-            else if (word.startsWith("wr") && cOnset === "r") { silentTokens.push({ char: "w", note: "wr- 組合：w 不發音" }); onsetLet = "r"; }
-            else { const mOnset = word.match(/^([^aeiouy]+)/i); if (mOnset && cOnset) onsetLet = mOnset[1]; }
+            if (word.startsWith("kn") && cOnset === "n") {
+                silentTokens.push({ char: "k", note: "kn- 組合：k 不發音" });
+                onsetLet = "n";
+            } else if (word.startsWith("wr") && cOnset === "r") {
+                silentTokens.push({ char: "w", note: "wr- 組合：w 不發音" });
+                onsetLet = "r";
+            } else {
+                const mOnset = word.match(/^([^aeiouy]+)/i);
+                if (mOnset && cOnset) onsetLet = mOnset[1];
+            }
 
             const searchPart = word.slice(onsetLet.length);
             const magicEMatch = searchPart.match(/^([aeiouy])([^aeiouy]+)(e)$/i);
             if (magicEMatch) {
-                vowelLet = magicEMatch[1]; codaLet = magicEMatch[2]; silentTokens.push({ char: "e", note: "Magic e：結尾 e 不發音" });
+                vowelLet = magicEMatch[1];
+                codaLet = magicEMatch[2];
+                silentTokens.push({ char: "e", note: "Magic e：結尾 e 不發音" });
             } else {
                 const rem = word.slice(onsetLet.length);
                 const vMatch = rem.match(/^([aeiouy]+)(.*)$/i);
-                if (vMatch) { vowelLet = vMatch[1]; codaLet = vMatch[2]; }
+                if (vMatch) {
+                    vowelLet = vMatch[1];
+                    codaLet = vMatch[2];
+                }
             }
 
             return {
-                word: rawWord, ipa: targetIpa,
-                chunks: [{ letters: word, onsetLet, vowelLet, codaLet, onset: cOnset, vowel: cVowel, coda: cCoda, silentTokens }]
+                word: rawWord,
+                ipa: targetIpa,
+                chunks: [{
+                    letters: word,
+                    onsetLet,
+                    vowelLet,
+                    codaLet,
+                    onset: cOnset,
+                    vowel: cVowel,
+                    coda: cCoda,
+                    silentTokens
+                }]
             };
         }
 
         function verifyAndReconcileSyllables(analysis) {
             const integrityBadge = document.getElementById('ipa-integrity-badge');
             if (!integrityBadge || !analysis || !analysis.chunks || !analysis.ipa) return;
+
             const isEn = (currentLang === 'en');
             integrityBadge.className = "text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border shadow-2xs flex items-center gap-1 bg-emerald-50 text-emerald-700 border-emerald-200";
             integrityBadge.innerHTML = `<span>✓</span> <span>${isEn ? 'Syllable Match 100%' : '音節合拼 100% 吻合'}</span>`;
@@ -1743,13 +1907,13 @@
             const exampleBox = document.getElementById('def-example-box');
             const sourceInd = document.getElementById('def-source-indicator');
 
-            // 1. 優先使用本機內建字典 (如有定義)
             if (customWordDatabase[word] && customWordDatabase[word].definition) {
-                if (posBadge) posBadge.innerText = customWordDatabase[word].pos || 'word';
-                if (defText) defText.innerText = customWordDatabase[word].definition;
+                const entry = customWordDatabase[word];
+                if (posBadge) posBadge.innerText = entry.pos || 'word';
+                if (defText) defText.innerText = entry.definition;
                 if (exampleBox) {
-                    exampleBox.innerText = customWordDatabase[word].example ? `Example: "${customWordDatabase[word].example}"` : '';
-                    exampleBox.classList.toggle('hidden', !customWordDatabase[word].example);
+                    exampleBox.innerText = entry.example ? `Example: "${entry.example}"` : '';
+                    exampleBox.classList.toggle('hidden', !entry.example);
                 }
                 if (sourceInd) sourceInd.innerText = 'Built-in Lexicon';
                 return;
@@ -1757,14 +1921,14 @@
 
             if (defText) defText.innerHTML = '<span class="text-slate-400 italic">正在檢索英文解釋...</span>';
 
-            // 2. 查不到內建，呼叫官方字典 API，並加入 4 秒超時防卡死
+            // 加上 4 秒 Timeout 避免卡死
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 4000);
 
             try {
                 let res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`, { signal: controller.signal });
                 clearTimeout(timeoutId);
-                
+
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data[0] && data[0].meanings && data[0].meanings.length > 0) {
@@ -1781,15 +1945,15 @@
                             exampleBox.classList.toggle('hidden', !exString);
                         }
                         if (sourceInd) sourceInd.innerText = 'Official Dictionary API';
-                        return; // 成功獲取 API，結束。
+                        return;
                     }
                 }
             } catch (e) {
                 clearTimeout(timeoutId);
-                console.warn("Dictionary API fetch failed or timed out:", e);
+                console.warn("Dictionary fetch failed or timeout:", e);
             }
 
-            // 3. 如果 API 失敗或 404，執行安全的 Fallback，解除卡死狀態
+            // Fallback
             if (posBadge) posBadge.innerText = customWordDatabase[word]?.pos || 'word';
             if (defText) defText.innerHTML = `<span class="text-slate-500 italic">無可用線上釋義 (No online definition found)</span>`;
             if (exampleBox) exampleBox.classList.add('hidden');
@@ -1799,6 +1963,7 @@
         async function processWord() {
             const rawVal = document.getElementById('word-input').value.trim();
             const inputVal = rawVal.toLowerCase() || "climb";
+            
             stopAllPlayback();
 
             if (customWordDatabase[inputVal]) {
@@ -1861,7 +2026,9 @@
         function stopAllPlayback() {
             activeSessionId++;
             if (window.speechSynthesis) window.speechSynthesis.cancel();
-            activeAudioElements.forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e){} });
+            activeAudioElements.forEach(a => {
+                try { a.pause(); a.currentTime = 0; } catch(e){}
+            });
             activeAudioElements = [];
             clearVisualHighlights();
         }
@@ -1901,8 +2068,13 @@
             const backdrop = document.getElementById('nav-drawer-backdrop');
             const drawer = document.getElementById('nav-drawer');
             if (!backdrop || !drawer) return;
-            if (show) { backdrop.classList.remove('hidden'); drawer.classList.remove('translate-x-full'); }
-            else { backdrop.classList.add('hidden'); drawer.classList.add('translate-x-full'); }
+            if (show) {
+                backdrop.classList.remove('hidden');
+                drawer.classList.remove('translate-x-full');
+            } else {
+                backdrop.classList.add('hidden');
+                drawer.classList.add('translate-x-full');
+            }
         }
 
         function selectNavTab(tabId) {
@@ -1917,9 +2089,12 @@
 
             toggleNavMenu(false);
 
-            const labelMap = { main: '🏠', dictionary: '📖', extractor: '📝', ipa: '📊', flashcard: '🎴', scramble: '✍️', profile: '👤' };
+            const labelMap = { 
+                main: '🏠', dictionary: '📖', extractor: '📝', 
+                ipa: '📊', flashcard: '🎴', scramble: '✍️', profile: '👤' 
+            };
             const label = document.getElementById('nav-active-label');
-            if (label && labelMap[tabId]) label.innerHTML = `<span>${labelMap[tabId]}</span>`;
+            if (label && labelMap[tabId]) label.innerText = labelMap[tabId];
 
             if (tabId === 'ipa' && document.getElementById('grid-vowels').innerHTML === '') renderIPAChart();
             if (tabId === 'dictionary') renderDictionary();
@@ -1934,7 +2109,12 @@
         function renderFlashcardSubsetSelectors() {
             const container = document.getElementById('fc-subsets-checkboxes');
             if (!container) return;
-            const allSubsets = [{ id: '__ALL__', name: '全部核心詞庫', count: Object.keys(customWordDatabase).length }, ...Object.values(userSubsets).map(s => ({ id: s.id, name: s.name, count: s.words.length }))];
+
+            const allSubsets = [
+                { id: '__ALL__', name: '全部核心詞庫', count: Object.keys(customWordDatabase).length },
+                ...Object.values(userSubsets).map(s => ({ id: s.id, name: s.name, count: s.words.length }))
+            ];
+
             container.innerHTML = allSubsets.map(sub => {
                 const isChecked = selectedFlashcardSubsets.has(sub.id);
                 return `
@@ -1947,25 +2127,39 @@
         }
 
         function toggleFlashcardSubset(subId) {
-            if (selectedFlashcardSubsets.has(subId)) selectedFlashcardSubsets.delete(subId); else selectedFlashcardSubsets.add(subId);
+            if (selectedFlashcardSubsets.has(subId)) selectedFlashcardSubsets.delete(subId);
+            else selectedFlashcardSubsets.add(subId);
             if (selectedFlashcardSubsets.size === 0) selectedFlashcardSubsets.add('__ALL__');
-            renderFlashcardSubsetSelectors(); reloadFlashcards();
+            renderFlashcardSubsetSelectors();
+            reloadFlashcards();
         }
 
         function selectAllFlashcardSubsets(selectAll) {
             selectedFlashcardSubsets.clear();
-            if (selectAll) { selectedFlashcardSubsets.add('__ALL__'); Object.keys(userSubsets).forEach(id => selectedFlashcardSubsets.add(id)); }
-            else selectedFlashcardSubsets.add('__ALL__');
-            renderFlashcardSubsetSelectors(); reloadFlashcards();
+            if (selectAll) {
+                selectedFlashcardSubsets.add('__ALL__');
+                Object.keys(userSubsets).forEach(id => selectedFlashcardSubsets.add(id));
+            } else {
+                selectedFlashcardSubsets.add('__ALL__');
+            }
+            renderFlashcardSubsetSelectors();
+            reloadFlashcards();
         }
 
         function reloadFlashcards() {
             const wordSet = new Set();
-            if (selectedFlashcardSubsets.has('__ALL__')) Object.keys(customWordDatabase).forEach(w => wordSet.add(w.toLowerCase()));
+            if (selectedFlashcardSubsets.has('__ALL__')) {
+                Object.keys(customWordDatabase).forEach(w => wordSet.add(w.toLowerCase()));
+            }
             selectedFlashcardSubsets.forEach(subId => {
-                if (subId !== '__ALL__' && userSubsets[subId]) userSubsets[subId].words.forEach(w => wordSet.add(w.toLowerCase()));
+                if (subId !== '__ALL__' && userSubsets[subId]) {
+                    userSubsets[subId].words.forEach(w => wordSet.add(w.toLowerCase()));
+                }
             });
-            flashcardPool = Array.from(wordSet); flashcardIndex = 0; renderCurrentFlashcard();
+
+            flashcardPool = Array.from(wordSet);
+            flashcardIndex = 0;
+            renderCurrentFlashcard();
         }
 
         async function renderCurrentFlashcard() {
@@ -1973,12 +2167,13 @@
             const currentWord = flashcardPool[flashcardIndex];
             document.getElementById('fc-word').innerText = currentWord;
             document.getElementById('fc-progress-badge').innerText = `第 ${flashcardIndex + 1} / ${flashcardPool.length} 張`;
+
             document.getElementById('fc-def-box').classList.add('hidden');
             const toggleText = document.getElementById('fc-def-toggle-text');
             if (toggleText) toggleText.innerText = (currentLang === 'en') ? 'Show English Definition' : '顯示英文解釋';
 
             let entry = customWordDatabase[currentWord] || decomposeWordAutomatically(currentWord);
-            currentAnalysis = entry; // Enable chunk playback
+            currentAnalysis = entry; // Enable individual chunk play in flashcard
             document.getElementById('fc-ipa').innerText = entry.ipa;
 
             const chunksBox = document.getElementById('fc-chunks-box');
@@ -2016,7 +2211,8 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [flashcardPool[i], flashcardPool[j]] = [flashcardPool[j], flashcardPool[i]];
             }
-            flashcardIndex = 0; renderCurrentFlashcard();
+            flashcardIndex = 0;
+            renderCurrentFlashcard();
         }
 
         function playFlashcardAudio() {
@@ -2029,7 +2225,8 @@
         function openCurrentFlashcardInEngine() {
             if (flashcardPool.length === 0) return;
             const word = flashcardPool[flashcardIndex];
-            selectNavTab('main'); quickInputWord(word);
+            selectNavTab('main');
+            quickInputWord(word);
         }
 
         let scrambleQuestions = []; let currentScrambleIndex = 0; let scrambleScore = 0; let scrambleStreak = 0;
@@ -2570,7 +2767,7 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    // 改為讀取 2D 陣列 (以便抓取欄位 A 和欄位 B)
+                    // 讀取 A 欄 (Word) 與 B 欄 (IPA)
                     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     
                     Object.keys(customWordDatabase).forEach(k => delete customWordDatabase[k]);
@@ -2581,18 +2778,15 @@
                         if (!r || r.length === 0) return;
 
                         const wordCell = r[0];
-                        const ipaCell = r[1]; // 取出 B 欄的音標
+                        const ipaCell = r[1];
 
                         if (typeof wordCell === 'string' && /^[a-zA-Z\s\-']{2,25}$/.test(wordCell.trim())) {
                             const w = wordCell.trim().toLowerCase();
                             
-                            // 判斷 Excel 是否有提供 IPA，如果有，強制覆蓋猜測
                             if (ipaCell && typeof ipaCell === 'string' && !ipaCell.includes('No IPA') && ipaCell.trim() !== '') {
-                                // 將 Excel 提供的音標清除多餘斜線，加上我們系統標準的斜線
                                 const cleanIpa = "/" + ipaCell.trim().replace(/\//g, '') + "/";
                                 customWordDatabase[w] = alignChunksToTargetIPA(w, cleanIpa);
                             } else {
-                                // 如果 Excel 只有單字沒有音標，回退至系統自動估算
                                 if (!customWordDatabase[w]) {
                                     customWordDatabase[w] = decomposeWordAutomatically(w);
                                 }
