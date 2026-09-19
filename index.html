@@ -490,20 +490,41 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-2 border-b border-slate-100">
                     <div>
                         <h2 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2"><span>📝</span> <span data-i18n="ext_heading">課文生字提取與字根還原</span></h2>
-                        <p class="text-slate-500 font-semibold text-xs sm:text-sm" data-i18n="ext_subheading">貼入課文或故事內容，自動提取重點單字並還原詞根，快速分組管理。</p>
+                        <p class="text-slate-500 font-semibold text-xs sm:text-sm" data-i18n="ext_subheading">貼入課文或拍照辨識，自動比對 3000 核心詞庫並補齊音標。</p>
                     </div>
                     <label class="flex items-center gap-2 cursor-pointer bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 text-xs font-black text-emerald-800">
                         <input type="checkbox" id="chk-lemmatize" checked class="w-4 h-4 rounded text-emerald-600 accent-emerald-600">
                         <span data-i18n="lemmatize_toggle">🌱 自動還原字根 (played ➔ play, knives ➔ knife)</span>
                     </label>
                 </div>
-                <textarea id="extract-input" rows="4" class="w-full p-3.5 border-2 border-slate-200 rounded-2xl font-semibold text-slate-700 text-xs sm:text-sm bg-slate-50 focus:bg-white focus:outline-none" placeholder="在此貼上課文或故事內容..."></textarea>
+
+                <!-- 課文拍照與圖片 OCR 辨識工具列 -->
+                <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200 text-xs font-bold">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-slate-500">📷 課本圖片辨識：</span>
+                        <label class="cursor-pointer px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-2xs flex items-center gap-1 active:scale-95 transition-all">
+                            <span>📸 拍照識字</span>
+                            <input type="file" id="textbook-camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleTextbookImageOcr(event)">
+                        </label>
+                        <label class="cursor-pointer px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-300 shadow-2xs flex items-center gap-1 active:scale-95 transition-all">
+                            <span>🖼️ 上傳相片</span>
+                            <input type="file" id="textbook-upload-input" accept="image/*" class="hidden" onchange="handleTextbookImageOcr(event)">
+                        </label>
+                    </div>
+                    <div id="ocr-textbook-status" class="hidden text-indigo-700 font-black flex items-center gap-1.5">
+                        <span class="animate-spin">⏳</span> <span id="ocr-textbook-msg">正在辨識課本圖片...</span>
+                    </div>
+                </div>
+
+                <textarea id="extract-input" rows="4" class="w-full p-3.5 border-2 border-slate-200 rounded-2xl font-semibold text-slate-700 text-xs sm:text-sm bg-slate-50 focus:bg-white focus:outline-none" placeholder="在此貼上課文或故事內容，或透過上方拍照辨識..."></textarea>
+                
                 <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                     <div class="flex flex-wrap gap-2 items-center">
                         <button onclick="extractVocab()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-xs flex items-center gap-1.5 text-xs sm:text-sm active:scale-95"><span>🔍</span> <span data-i18n="btn_extract">提取生字</span></button>
                         <button onclick="selectAllExtracted(true)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs" data-i18n="select_all">✓ 全選</button>
                         <button onclick="selectAllExtracted(false)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs" data-i18n="deselect_all">✕ 全不選</button>
-                        <span id="selected-count-badge" class="text-xs font-black bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-200">已選 0 字</span>
+                        <button onclick="filterExtractedSelection('builtin')" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-black rounded-xl text-xs border border-emerald-200">🟢 只要核心庫</button>
+                        <button onclick="filterExtractedSelection('external')" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-black rounded-xl text-xs border border-amber-200">🟠 只要庫外字</button>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         <select id="extractor-subset-target" onchange="handleTargetSubsetChange(this.value)" class="px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-xs text-slate-700">
@@ -513,8 +534,18 @@
                         <button onclick="saveSelectedToSubset()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-xs text-xs flex items-center gap-1 active:scale-95"><span>📥</span> <span data-i18n="btn_import_subset">匯入所選生字</span></button>
                     </div>
                 </div>
-                <div id="extracted-grid" class="flex flex-wrap gap-2 min-h-[80px] p-3 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                    <div class="text-slate-400 text-xs font-bold py-6 text-center w-full">請在上方貼上課文後點擊「🔍 提取生字」</div>
+
+                <!-- 提取結果統計列 -->
+                <div class="flex items-center justify-between flex-wrap gap-2 text-xs font-bold px-1">
+                    <div class="flex items-center gap-2">
+                        <span id="selected-count-badge" class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-200">已選 0 字</span>
+                        <span id="extractor-stats-badge" class="text-slate-500">🟢 核心庫: 0 | 🟠 庫外生字: 0</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400">💡 提示：點擊藥丸可反選，點擊 🚀 可直接在主頁拆解發音</span>
+                </div>
+
+                <div id="extracted-grid" class="flex flex-wrap gap-2.5 min-h-[80px] p-3.5 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                    <div class="text-slate-400 text-xs font-bold py-6 text-center w-full">請在上方貼上課文或拍照後點擊「🔍 提取生字」</div>
                 </div>
             </div>
 
@@ -1696,8 +1727,8 @@
             }
             if (w.endsWith("ed") && w.length > 3) {
                 const b = w.slice(0, -2), be = w.slice(0, -1);
-                if (isValid(be)) return { root: be, original: w };
                 if (isValid(b)) return { root: b, original: w };
+                if (isValid(be)) return { root: be, original: w };
                 return { root: w, original: w };
             }
             if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3) {
@@ -1709,11 +1740,82 @@
         }
 
         const stopWordsSet = new Set(['the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they']);
+        
+        async function handleTextbookImageOcr(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const statusBox = document.getElementById('ocr-textbook-status');
+            const statusMsg = document.getElementById('ocr-textbook-msg');
+            if (statusBox) statusBox.classList.remove('hidden');
+            if (statusMsg) statusMsg.innerText = '正在處理圖片...';
+
+            try {
+                let recognizedText = "";
+                const geminiKey = localStorage.getItem('gemini_api_key');
+                
+                // 優先使用已配置的 Gemini Vision API（秒級高精度）
+                if (geminiKey) {
+                    if (statusMsg) statusMsg.innerText = '正在調用 AI 辨識課文...';
+                    const base64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [
+                                    { text: "Extract all English text from this textbook image accurately. Output only the plain text with correct spaces, no markdown or extra explanations." },
+                                    { inline_data: { mime_type: file.type || "image/jpeg", data: base64 } }
+                                ]
+                            }],
+                            generationConfig: { temperature: 0.1 }
+                        })
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        recognizedText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                    }
+                }
+
+                // 本機 Tesseract.js 離線備援
+                if (!recognizedText && window.Tesseract) {
+                    if (statusMsg) statusMsg.innerText = '正在使用本機 Tesseract 辨識課文 (請稍候)...';
+                    const result = await Tesseract.recognize(file, 'eng');
+                    if (result?.data?.text) {
+                        recognizedText = result.data.text;
+                    }
+                }
+
+                if (recognizedText && recognizedText.trim()) {
+                    const textarea = document.getElementById('extract-input');
+                    if (textarea) textarea.value = recognizedText.trim();
+                    showToast("✓ 課文相片文字辨識完成！已自動填入。", "success");
+                    extractVocab();
+                } else {
+                    showToast("未能從圖片中辨識出足夠的英文字詞，請重試或拍得更清晰。", "warning");
+                }
+            } catch (err) {
+                console.warn("Textbook OCR Error:", err);
+                showToast("圖片辨識過程發生問題，請確認網路或更換圖片。", "error");
+            } finally {
+                if (statusBox) statusBox.classList.add('hidden');
+                event.target.value = '';
+            }
+        }
+
         function extractVocab() {
-            let txt = document.getElementById('extract-input').value.toLowerCase(); if (!txt.trim()) return;
+            let txt = document.getElementById('extract-input').value.toLowerCase();
+            if (!txt.trim()) return;
             txt = txt.replace(/n['’]t\b/gi, ' not').replace(/['’]s\b/gi, '').replace(/[^a-z\s]/g, ' ');
             const shouldLem = document.getElementById('chk-lemmatize')?.checked ?? true;
             const seen = new Map();
+
             txt.split(/\s+/).forEach(r => {
                 const c = r.trim();
                 if (c.length > 2 && !stopWordsSet.has(c)) {
@@ -1721,23 +1823,160 @@
                     if (!seen.has(lem.root)) seen.set(lem.root, lem.original);
                 }
             });
-            extractedItems = Array.from(seen.entries()).map(([root, original]) => ({ root, original, selected: true }));
+
+            extractedItems = Array.from(seen.entries()).map(([root, original]) => {
+                const inDb = !!customWordDatabase[root];
+                return {
+                    root,
+                    original,
+                    selected: true,
+                    inDb,
+                    ipa: inDb ? customWordDatabase[root].ipa : '',
+                    source: inDb ? 'builtin' : 'pending' // 'builtin' | 'api' | 'fallback' | 'pending'
+                };
+            });
+
+            renderExtracted();
+            resolveMissingIpaAsync();
+        }
+
+        async function resolveMissingIpaAsync() {
+            const pendingList = extractedItems.filter(i => !i.inDb && i.source === 'pending');
+            if (pendingList.length === 0) return;
+
+            // 限制併發量至 4，避免 API 限流
+            const batchSize = 4;
+            for (let i = 0; i < pendingList.length; i += batchSize) {
+                const batch = pendingList.slice(i, i + batchSize);
+                await Promise.all(batch.map(async (item) => {
+                    try {
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 3500);
+                        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(item.root)}`, { signal: controller.signal });
+                        clearTimeout(timeout);
+                        if (res.ok) {
+                            const data = await res.json();
+                            const entry = data[0];
+                            const ukMatch = entry?.phonetics?.find(p => (p.audio?.includes('-uk') || p.audio?.includes('-gb')) || (p.text && /[ɔːəʊɒʊə]/.test(p.text)));
+                            const ukIpa = ukMatch?.text || entry?.phonetics?.find(p => p.text)?.text || entry?.phonetic;
+                            if (ukIpa) {
+                                item.ipa = "/" + ukIpa.replace(/\//g, '') + "/";
+                                item.source = 'api';
+                                updateSingleChipDOM(item);
+                                return;
+                            }
+                        }
+                    } catch (e) {}
+
+                    // 線上 API 缺失或失敗時，平滑調用 Fallback 規則估算引擎
+                    const fb = decomposeWordAutomatically(item.root);
+                    item.ipa = fb.ipa;
+                    item.source = 'fallback';
+                    updateSingleChipDOM(item);
+                }));
+            }
+        }
+
+        function updateSingleChipDOM(item) {
+            const el = document.getElementById(`extracted-chip-${item.root}`);
+            if (!el) return;
+            const ipaSpan = el.querySelector('.chip-ipa-text');
+            const badgeSpan = el.querySelector('.chip-source-tag');
+            if (ipaSpan) ipaSpan.innerText = item.ipa;
+            if (badgeSpan) {
+                if (item.source === 'api') {
+                    badgeSpan.innerText = '🟠 庫外 (API)';
+                    badgeSpan.className = 'chip-source-tag text-[9px] font-black px-1.5 py-0.2 rounded bg-amber-100 text-amber-800';
+                } else if (item.source === 'fallback') {
+                    badgeSpan.innerText = '⚠️ 規則估算';
+                    badgeSpan.className = 'chip-source-tag text-[9px] font-black px-1.5 py-0.2 rounded bg-orange-100 text-orange-800';
+                }
+            }
+        }
+
+        function renderExtracted() {
+            const grid = document.getElementById('extracted-grid');
+            if (!grid) return;
+            const selectedCount = extractedItems.filter(i => i.selected).length;
+            const inDbCount = extractedItems.filter(i => i.inDb).length;
+            const outDbCount = extractedItems.length - inDbCount;
+
+            document.getElementById('selected-count-badge').innerText = `已選 ${selectedCount} / ${extractedItems.length} 字`;
+            document.getElementById('extractor-stats-badge').innerHTML = `🟢 核心庫: <span class="text-emerald-700 font-black">${inDbCount}</span> | 🟠 庫外生字: <span class="text-amber-700 font-black">${outDbCount}</span>`;
+
+            if (!extractedItems.length) {
+                grid.innerHTML = `<div class="text-slate-400 text-xs font-bold py-6 text-center w-full">未提取到生字。請貼入課文或拍照上傳後點擊「🔍 提取生字」。</div>`;
+                return;
+            }
+
+            grid.innerHTML = extractedItems.map((item, idx) => {
+                const isSelected = item.selected;
+                // 雙色設計：核心庫（翡翠綠） vs 庫外生字（暖琥珀）
+                let cardStyle = "";
+                let tagHtml = "";
+                
+                if (item.inDb) {
+                    cardStyle = isSelected 
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-xs" 
+                        : "bg-emerald-50/70 text-emerald-900 border-emerald-200 hover:border-emerald-400";
+                    tagHtml = `<span class="chip-source-tag text-[9px] font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-emerald-700 text-emerald-100' : 'bg-emerald-100 text-emerald-800'}">🟢 3000核心庫</span>`;
+                } else {
+                    cardStyle = isSelected 
+                        ? "bg-amber-600 text-white border-amber-600 shadow-xs" 
+                        : "bg-amber-50/70 text-amber-900 border-amber-200 hover:border-amber-400";
+                    const tagLabel = item.source === 'api' ? '🟠 庫外 (API)' : (item.source === 'fallback' ? '⚠️ 規則估算' : '⏳ 檢索中...');
+                    tagHtml = `<span class="chip-source-tag text-[9px] font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-amber-700 text-amber-100' : 'bg-amber-100 text-amber-800'}">${tagLabel}</span>`;
+                }
+
+                const ipaDisplay = item.ipa ? `<span class="chip-ipa-text text-[10px] font-mono opacity-90">${item.ipa}</span>` : `<span class="chip-ipa-text text-[10px] font-mono opacity-50">/.../</span>`;
+
+                return `
+                    <div id="extracted-chip-${item.root}" class="rounded-2xl border-2 p-2 sm:px-3 sm:py-2 flex items-center justify-between gap-2.5 transition-all select-none ${cardStyle}">
+                        <div onclick="toggleExtractedWord(${idx})" class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" ${item.selected ? 'checked' : ''} class="w-4 h-4 rounded accent-slate-900 cursor-pointer pointer-events-none">
+                            <div class="flex flex-col text-left">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-xs sm:text-sm font-black">${item.root !== item.original ? `${item.original} ➔ ` : ''}${item.root}</span>
+                                    ${tagHtml}
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    ${ipaDisplay}
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); quickInputWord('${item.root}'); selectNavTab('main');" class="p-1 px-1.5 rounded-lg bg-white/20 hover:bg-white/40 text-current text-xs font-black transition-colors" title="在主頁拆解與聽發音">
+                            🚀
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleExtractedWord(idx) {
+            if (extractedItems[idx]) {
+                extractedItems[idx].selected = !extractedItems[idx].selected;
+                renderExtracted();
+            }
+        }
+
+        function selectAllExtracted(s) {
+            extractedItems.forEach(i => i.selected = s);
             renderExtracted();
         }
-        function renderExtracted() {
-            const grid = document.getElementById('extracted-grid'); if (!grid) return;
-            document.getElementById('selected-count-badge').innerText = `已選 ${extractedItems.filter(i=>i.selected).length} / ${extractedItems.length} 字`;
-            if (!extractedItems.length) { grid.innerHTML = `<div class="text-slate-400 text-xs font-bold py-6 text-center w-full">未提取到生字。</div>`; return; }
-            grid.innerHTML = extractedItems.map((item, idx) => `
-                <div onclick="toggleExtractedWord(${idx})" class="cursor-pointer px-3 py-1.5 rounded-xl border-2 flex items-center gap-1.5 ${item.selected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200'}">
-                    <input type="checkbox" ${item.selected ? 'checked' : ''} class="w-3.5 h-3.5 rounded accent-blue-500">
-                    <span class="text-xs font-bold">${item.root !== item.original ? `${item.original} ➔ ` : ''}${item.root}</span>
-                </div>
-            `).join('');
+
+        function filterExtractedSelection(type) {
+            if (type === 'builtin') {
+                extractedItems.forEach(i => i.selected = i.inDb);
+            } else if (type === 'external') {
+                extractedItems.forEach(i => i.selected = !i.inDb);
+            }
+            renderExtracted();
         }
-        function toggleExtractedWord(idx) { if (extractedItems[idx]) { extractedItems[idx].selected = !extractedItems[idx].selected; renderExtracted(); } }
-        function selectAllExtracted(s) { extractedItems.forEach(i => i.selected = s); renderExtracted(); }
-        function handleTargetSubsetChange(val) { document.getElementById('new-subset-name-input')?.classList.toggle('hidden', val !== '__NEW__'); }
+
+        function handleTargetSubsetChange(val) {
+            document.getElementById('new-subset-name-input')?.classList.toggle('hidden', val !== '__NEW__');
+        }
+
         function saveSelectedToSubset() {
             const words = extractedItems.filter(i => i.selected).map(i => i.root);
             if (!words.length) return showToast("請至少勾選一個生字！", "warning");
